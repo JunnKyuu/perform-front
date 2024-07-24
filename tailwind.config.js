@@ -6,6 +6,11 @@ module.exports = withMT({
   ],
   theme: {
     extend: {},
+    fontFamily: {
+      GmarketLight: ['GmarketSansLight'],
+      GmarketMedium: ['GmarketSansMedium'],
+      GmarketBold: ['GmarketSansBold'],
+    },
   },
   plugins: [],
 });
