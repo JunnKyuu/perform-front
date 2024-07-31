@@ -46,8 +46,8 @@ const FeedbackCommunity = () => {
       {
         id: 5,
         category: '심사',
-        title: '대회 준비 중 피드백 부탁드립니다',
-        author: '대회준비생',
+        title: '고수 신청합니다.',
+        author: '헬스고수',
         date: '2024-07-28',
       },
       {
@@ -89,6 +89,13 @@ const FeedbackCommunity = () => {
     }
   };
 
+  const getPostLink = (post) => {
+    if (post.category === '심사') {
+      return `/feedback/evaluation/${post.id}`;
+    }
+    return `/feedback/${getCategoryPath(post.category)}/${post.id}`;
+  };
+
   const filteredPosts =
     selectedCategory === '전체' ? posts : posts.filter((post) => post.category === selectedCategory);
 
@@ -121,7 +128,7 @@ const FeedbackCommunity = () => {
           </div>
           <div className="grid gap-4">
             {filteredPosts.map((post) => (
-              <Link key={post.id} to={`/feedback/${getCategoryPath(post.category)}/${post.id}`} className="block">
+              <Link key={post.id} to={getPostLink(post)} className="block">
                 <div className="px-3 py-2 border rounded-lg shadow-sm border-[#DDDDDD] cursor-pointer transition-all duration-200 ease-in-out hover:shadow-md hover:border-[#2EC4B6] active:bg-gray-100">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center justify-center">

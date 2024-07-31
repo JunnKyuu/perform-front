@@ -1,14 +1,19 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 
-const categories = [
+const feedbackCategories = [
   { ko: '등', en: 'back' },
   { ko: '가슴', en: 'chest' },
   { ko: '어깨', en: 'shoulder' },
   { ko: '팔', en: 'arm' },
   { ko: '하체', en: 'leg' },
   { ko: '복근', en: 'abs' },
-  { ko: '심사', en: 'review' },
+  { ko: '심사', en: 'evaluation' },
+];
+
+const routineNutritionCategories = [
+  { ko: '루틴', en: 'routine' },
+  { ko: '영양', en: 'nutrition' },
 ];
 
 const CategorySidebar = ({ isOpen, onClose }) => {
@@ -32,11 +37,25 @@ const CategorySidebar = ({ isOpen, onClose }) => {
       </div>
       <nav className="p-4">
         <h3 className="mb-3 text-sm font-GmarketMedium">피드백</h3>
-        <ul>
-          {categories.map((category) => (
+        <ul className="mb-6">
+          {feedbackCategories.map((category) => (
             <li key={category.ko} className="mb-2">
               <Link
                 to={`/feedback/${category.en}`}
+                className="block px-4 py-2 text-sm text-gray-700 rounded hover:bg-gray-100 font-GmarketLight"
+                onClick={onClose}
+              >
+                {category.ko}
+              </Link>
+            </li>
+          ))}
+        </ul>
+        <h3 className="mb-3 text-sm font-GmarketMedium">루틴/영양</h3>
+        <ul>
+          {routineNutritionCategories.map((category) => (
+            <li key={category.ko} className="mb-2">
+              <Link
+                to={`/routine-nutrition/${category.en}`}
                 className="block px-4 py-2 text-sm text-gray-700 rounded hover:bg-gray-100 font-GmarketLight"
                 onClick={onClose}
               >
