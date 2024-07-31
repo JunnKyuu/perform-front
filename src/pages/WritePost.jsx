@@ -117,6 +117,8 @@ const WritePost = () => {
           <option value="심사">심사</option>
           <option value="하체">하체</option>
           <option value="어깨">어깨</option>
+          <option value="루틴">루틴</option>
+          <option value="영양">영양</option>
         </select>
         {error && <p className="mb-4 text-sm text-red-500">{error}</p>}
         <input
