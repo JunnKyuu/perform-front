@@ -67,50 +67,41 @@ const CategoryRoutineNutrition = () => {
   return (
     <div className="max-w-[600px] min-h-[100vh] mx-auto p-4 bg-white">
       <Header isAuthenticated={isAuthenticated} />
-      {isAuthenticated ? (
-        <div className="mt-8">
-          <div className="flex items-center justify-between mb-5">
-            <h1 className="text-xl font-GmarketBold">{getCategoryKorean(category)} 게시글 목록</h1>
-            <Link
-              to="/write-post"
-              className="inline-block px-4 py-2 text-sm text-black rounded-lg font-GmarketMedium hover:text-[#2EC4B6] active:text-black"
-            >
-              글쓰기
-            </Link>
-          </div>
-          <div className="grid gap-4">
-            {posts.map((post) => (
-              <Link
-                key={post.id}
-                to={`/routine-nutrition/${getCategoryPath(post.category)}/${post.id}`}
-                className="block"
-              >
-                <div className="px-3 py-2 border rounded-lg shadow-sm border-[#DDDDDD] cursor-pointer transition-all duration-200 ease-in-out hover:shadow-md hover:border-[#2EC4B6] active:bg-gray-100">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center justify-center">
-                      <span className="text-sm font-GmarketMedium text-[#2EC4B6] w-8">
-                        {getCategoryKorean(post.category)}
-                      </span>
-                      <h3 className="flex ml-1 text-sm font-GmarketLight">{post.title}</h3>
-                    </div>
-                    <div className="flex items-center justify-center">
-                      <p className="mx-2 text-[10px] text-black font-GmarketLight">{post.author}</p>
-                      <p className="w-16 text-[10px] text-black font-GmarketLight">{post.date}</p>
-                    </div>
-                  </div>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </div>
-      ) : (
-        <div className="py-8 text-center">
-          <h2 className="mb-4 text-xl font-GmarketBold">로그인이 필요한 서비스입니다.</h2>
-          <Link to="/login" className="bg-[#2EC4B6] text-white px-4 py-2 rounded-lg">
-            로그인하기
+      <div className="mt-8">
+        <div className="flex items-center justify-between mb-5">
+          <h1 className="text-xl font-GmarketBold">{getCategoryKorean(category)} 게시글 목록</h1>
+          <Link
+            to="/write-post"
+            className="inline-block px-4 py-2 text-sm text-black rounded-lg font-GmarketMedium hover:text-[#2EC4B6] active:text-black"
+          >
+            글쓰기
           </Link>
         </div>
-      )}
+        <div className="grid gap-4">
+          {posts.map((post) => (
+            <Link
+              key={post.id}
+              to={`/routine-nutrition/${getCategoryPath(post.category)}/${post.id}`}
+              className="block"
+            >
+              <div className="px-3 py-2 border rounded-lg shadow-sm border-[#DDDDDD] cursor-pointer transition-all duration-200 ease-in-out hover:shadow-md hover:border-[#2EC4B6] active:bg-gray-100">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-center">
+                    <span className="text-sm font-GmarketMedium text-[#2EC4B6] w-8">
+                      {getCategoryKorean(post.category)}
+                    </span>
+                    <h3 className="flex ml-1 text-sm font-GmarketLight">{post.title}</h3>
+                  </div>
+                  <div className="flex items-center justify-center">
+                    <p className="mx-2 text-[10px] text-black font-GmarketLight">{post.author}</p>
+                    <p className="w-16 text-[10px] text-black font-GmarketLight">{post.date}</p>
+                  </div>
+                </div>
+              </div>
+            </Link>
+          ))}
+        </div>
+      </div>
       <AppBar />
     </div>
   );
