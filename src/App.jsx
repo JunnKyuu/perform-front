@@ -33,7 +33,7 @@ const App = () => {
           <Route path="/feedback/evaluation/:id" element={<ProtectedRoute element={<EvaluationDetail />} />} />
           <Route path="/feedback/:category" element={<ProtectedRoute element={<CategoryFeedback />} />} />
           <Route path="/write-post" element={<ProtectedRoute element={<WritePost />} />} />
-          <Route path="/myPage" element={<ProtectedRoute element={<MyPage />} />} />
+          <Route path="/my-page" element={<ProtectedRoute element={<MyPage />} />} />
           <Route path="/alarm" element={<ProtectedRoute element={<Alarm />} />} />
           <Route path="/routine-nutrition" element={<ProtectedRoute element={<RoutineNutritionCommunity />} />} />
           <Route

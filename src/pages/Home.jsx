@@ -109,7 +109,7 @@ const Home = () => {
       {
         id: 1,
         category: '루틴',
-        title: '초보자를 위한 전신 운동 루틴',
+        title: '헬린이 전신 운동 루틴',
         author: '헬스마스터',
         date: '2024-07-31',
         image:

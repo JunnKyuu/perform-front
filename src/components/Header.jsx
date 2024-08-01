@@ -24,12 +24,7 @@ const Header = ({ isAuthenticated }) => {
             </button>
             <div className="flex items-center justify-between w-[55px]">
               <Link to="/alarm">
-                <button
-                  className="w-[25px] h-[25px] flex items-center justify-center hover:text-[#2EC4B6] active:text-black"
-                  onClick={() => {
-                    console.log('알림 페이지로 이동');
-                  }}
-                >
+                <button className="w-[25px] h-[25px] flex items-center justify-center hover:text-[#2EC4B6] active:text-black">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     viewBox="0 0 24 24"
@@ -40,13 +35,8 @@ const Header = ({ isAuthenticated }) => {
                   </svg>
                 </button>
               </Link>
-              <Link to="/myPage">
-                <button
-                  className="w-[25px] h-[25px] flex items-center justify-center hover:text-[#2EC4B6] active:text-black"
-                  onClick={() => {
-                    console.log('마이 페이지로 이동');
-                  }}
-                >
+              <Link to="/my-page">
+                <button className="w-[25px] h-[25px] flex items-center justify-center hover:text-[#2EC4B6] active:text-black">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     fill="#000000"
