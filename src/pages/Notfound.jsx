@@ -17,7 +17,7 @@ const Notfound = () => {
         </button>
       </div>
       <div className="w-[100%] h-[40%] flex flex-col justify-center items-center">
-        <span className="mb-10 text-4xl text-red-400 font-GmarketBold">잘못된 페이지입니다!</span>
+        <span className="mb-10 text-4xl text-[#FF6B6B] font-GmarketBold">잘못된 페이지입니다!</span>
         <span className="text-xl font-GmarketLight">페이지를 이동해주세요.</span>
       </div>
     </div>

@@ -67,6 +67,7 @@ const Home = () => {
   const [routineNutritionPosts, setRoutineNutritionPosts] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState([]);
+  const [showLoginMessage, setShowLoginMessage] = useState(false);
 
   useEffect(() => {
     fetchPosts();
@@ -140,6 +141,10 @@ const Home = () => {
     return categoryMap[category] || category.toLowerCase();
   };
 
+  const showLoginRequiredMessage = () => {
+    setShowLoginMessage(true);
+  };
+
   const handleCategoryClick = (path) => {
     if (path === '/routine' || path === '/nutrition') {
       navigate(`/routine-nutrition${path}`);
@@ -162,6 +167,18 @@ const Home = () => {
 
   const filterPosts = (posts, term) => {
     return posts.filter((post) => post.title.toLowerCase().includes(term.toLowerCase()));
+  };
+
+  const handlePostClick = (post, category) => {
+    if (isAuthenticated) {
+      const path =
+        category === 'routine' || category === 'nutrition'
+          ? `/routine-nutrition/${category}/${post.id}`
+          : `/feedback/${getCategoryPath(post.category)}/${post.id}`;
+      navigate(path);
+    } else {
+      showLoginRequiredMessage();
+    }
   };
 
   // 컴포넌트 렌더링 함수
@@ -225,7 +242,7 @@ const Home = () => {
     </div>
   );
 
-  const renderPostSection = (title, posts, linkTo, onClick) => {
+  const renderPostSection = (title, posts, linkTo, category) => {
     return (
       <div className="px-5 py-3 mt-10">
         <div className="flex items-center justify-between mb-4">
@@ -243,7 +260,7 @@ const Home = () => {
               <div
                 key={post.id}
                 className="overflow-hidden border rounded-lg shadow-sm cursor-pointer transition-all duration-200 ease-in-out hover:shadow-md hover:border-[#2EC4B6] active:bg-gray-100"
-                onClick={() => onClick(post)}
+                onClick={() => handlePostClick(post, category)}
               >
                 <div className="flex items-center px-1 sm:p-2">
                   <img
@@ -286,15 +303,30 @@ const Home = () => {
           <div className="flex justify-center items-center w-[100%] p-3 mt-10">
             <AdvertiseButton />
           </div>
-          {renderPostSection('피드백 커뮤니티', feedbackPosts, '/feedback', (post) =>
-            navigate(`/feedback/${getCategoryPath(post.category)}/${post.id}`)
-          )}
-          {renderPostSection('루틴/영양 커뮤니티', routineNutritionPosts, '/routine-nutrition', (post) =>
-            navigate(`/routine-nutrition/${post.category.toLowerCase()}/${post.id}`)
-          )}
+          {renderPostSection('피드백 커뮤니티', feedbackPosts, '/feedback', 'feedback')}
+          {renderPostSection('루틴/영양 커뮤니티', routineNutritionPosts, '/routine-nutrition', 'routine-nutrition')}
         </>
       ) : (
-        <SearchResults results={searchResults} navigate={navigate} getCategoryPath={getCategoryPath} />
+        <SearchResults
+          results={searchResults}
+          navigate={navigate}
+          getCategoryPath={getCategoryPath}
+          isAuthenticated={isAuthenticated}
+          showLoginMessage={showLoginRequiredMessage}
+        />
+      )}
+      {showLoginMessage && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="flex flex-col items-center justify-center p-8 bg-white rounded-lg shadow-lg">
+            <h2 className="mb-4 text-sm font-GmarketBold text-[#FF6B6B]">로그인이 필요한 서비스입니다.</h2>
+            <button
+              className="px-3 py-2 text-[#2EC4B6] border border-[#2EC4B6] rounded hover:text-white hover:bg-[#2EC4B6] active:text-[#2EC4B6] active:bg-white transition-colors duration-200 rounded-lg font-GmarketMedium text-xs "
+              onClick={() => setShowLoginMessage(false)}
+            >
+              확인
+            </button>
+          </div>
+        </div>
       )}
       <AppBar />
     </div>
