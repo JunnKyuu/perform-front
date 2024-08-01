@@ -105,7 +105,7 @@ const FeedbackCommunity = () => {
       {isAuthenticated ? (
         <div className="mt-8">
           <div className="flex items-center justify-between mb-5">
-            <h1 className="text-xl font-GmarketBold">전체 게시글 목록</h1>
+            <h1 className="text-xl font-GmarketBold">피드백 게시글 목록</h1>
             <Link
               to="/write-post"
               className="inline-block px-4 py-2 text-sm text-white bg-[#2EC4B6] rounded-lg font-GmarketMedium hover:bg-[#25A99D] active:bg-[#1F8C82]"

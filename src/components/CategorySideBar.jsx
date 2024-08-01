@@ -36,7 +36,9 @@ const CategorySidebar = ({ isOpen, onClose }) => {
         </button>
       </div>
       <nav className="p-4">
-        <h3 className="mb-3 text-sm font-GmarketMedium">피드백</h3>
+        <Link to="/feedback" className="block mb-3" onClick={onClose}>
+          <h3 className="text-sm font-GmarketMedium hover:text-[#2EC4B6]">피드백</h3>
+        </Link>
         <ul className="mb-6">
           {feedbackCategories.map((category) => (
             <li key={category.ko} className="mb-2">
@@ -50,7 +52,9 @@ const CategorySidebar = ({ isOpen, onClose }) => {
             </li>
           ))}
         </ul>
-        <h3 className="mb-3 text-sm font-GmarketMedium">루틴/영양</h3>
+        <Link to="/routine-nutrition" className="block mb-3" onClick={onClose}>
+          <h3 className="text-sm font-GmarketMedium hover:text-[#2EC4B6]">루틴/영양</h3>
+        </Link>
         <ul>
           {routineNutritionCategories.map((category) => (
             <li key={category.ko} className="mb-2">
