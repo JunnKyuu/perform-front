@@ -3,15 +3,15 @@ import { createContext, useReducer, useContext } from 'react';
 const AuthContext = createContext();
 
 const initialState = {
-  isAuthenticated: false,
-  user: null,
-  // isAuthenticated: true,
-  // user: {
-  //   id: '3642',
-  //   name: '한교동',
-  //   profile_image:
-  //     'https://cdn.eyesmag.com/content/uploads/sliderImages/2024/07/05/KakaoTalk_20240705_152931486_07-5f31a62b-2969-433a-97a3-d1c59f6f8a93.jpg',
-  // },
+  // isAuthenticated: false,
+  // user: null,
+  isAuthenticated: true,
+  user: {
+    id: '3642',
+    name: '한교동',
+    profile_image:
+      'https://cdn.eyesmag.com/content/uploads/sliderImages/2024/07/05/KakaoTalk_20240705_152931486_07-5f31a62b-2969-433a-97a3-d1c59f6f8a93.jpg',
+  },
 };
 
 const authReducer = (state, action) => {

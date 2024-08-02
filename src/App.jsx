@@ -3,7 +3,6 @@ import { Routes, Route } from 'react-router-dom';
 import Home from './pages/Home';
 import Login from './pages/Login';
 import Callback from './components/Login/Callback';
-import Alarm from './pages/Alarm';
 import MyPage from './pages/MyPage';
 import Notfound from './pages/Notfound';
 
@@ -12,6 +11,7 @@ import FeedbackDetail from './pages/feedbackCommunity/FeedbackDetail';
 import CategoryFeedback from './pages/feedbackCommunity/CategoryFeedback';
 import EvaluationDetail from './pages/feedbackCommunity/EvaluationDetail';
 import WritePost from './pages/WritePost';
+import EditPostPage from './pages/\bEditPostPage';
 
 import RoutineNutritionCommunity from './pages/routineNutritionCommunity/RoutineNutritionCommunity';
 import RoutineNutritionDetail from './pages/routineNutritionCommunity/RoutineNutritionDetail';
@@ -34,7 +34,7 @@ const App = () => {
           <Route path="/feedback/:category" element={<CategoryFeedback />} />
           <Route path="/write-post" element={<ProtectedRoute element={<WritePost />} />} />
           <Route path="/my-page" element={<ProtectedRoute element={<MyPage />} />} />
-          <Route path="/alarm" element={<ProtectedRoute element={<Alarm />} />} />
+          <Route path="/edit-post/:id" element={<ProtectedRoute element={<EditPostPage />} />} />
           <Route path="/routine-nutrition" element={<RoutineNutritionCommunity />} />
           <Route
             path="/routine-nutrition/:category/:id"
