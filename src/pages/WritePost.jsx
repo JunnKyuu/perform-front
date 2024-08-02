@@ -6,39 +6,53 @@ import Header from '../components/Header';
 import AppBar from '../components/AppBar';
 
 const WritePost = () => {
-  const [title, setTitle] = useState('');
-  const [content, setContent] = useState('');
-  const [category, setCategory] = useState('');
-  const [media, setMedia] = useState(null);
-  const [preview, setPreview] = useState(null);
+  const [postData, setPostData] = useState({
+    postId: '',
+    userId: '',
+    category: '',
+    title: '',
+    content: '',
+    user: '',
+    date: '',
+    image: [],
+    likes: 0,
+  });
   const [error, setError] = useState('');
   const fileInputRef = useRef(null);
   const navigate = useNavigate();
   const {
-    state: { isAuthenticated },
+    state: { isAuthenticated, user },
   } = useAuth();
 
   useEffect(() => {
     if (!isAuthenticated) {
       navigate('/login', { state: { from: '/write-post' } });
+    } else {
+      setPostData((prevData) => ({
+        ...prevData,
+        userId: user.id,
+        user: user.name,
+      }));
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, navigate, user]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!category) {
+    if (!postData.category) {
       setError('카테고리를 선택해주세요.');
       return;
     }
 
     try {
       const formData = new FormData();
-      formData.append('title', title);
-      formData.append('content', content);
-      formData.append('category', category);
-      if (media) {
-        formData.append('media', media);
-      }
+      formData.append('userId', postData.userId);
+      formData.append('category', postData.category);
+      formData.append('title', postData.title);
+      formData.append('content', postData.content);
+      formData.append('user', postData.user);
+      postData.image.forEach((file, index) => {
+        formData.append(`image${index}`, file);
+      });
 
       const response = await axios.post('/api/posts', formData, {
         headers: {
@@ -55,15 +69,18 @@ const WritePost = () => {
   };
 
   const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      setMedia(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPreview(reader.result);
-      };
-      reader.readAsDataURL(file);
-    }
+    const files = Array.from(e.target.files);
+    setPostData((prevData) => ({
+      ...prevData,
+      image: [...prevData.image, ...files],
+    }));
+  };
+
+  const removeMedia = (index) => {
+    setPostData((prevData) => ({
+      ...prevData,
+      image: prevData.image.filter((_, i) => i !== index),
+    }));
   };
 
   if (!isAuthenticated) {
@@ -90,20 +107,32 @@ const WritePost = () => {
           onChange={handleFileChange}
           ref={fileInputRef}
           className="hidden"
+          multiple
         />
-        {preview && (
-          <div className="mb-4">
-            {media.type.startsWith('image/') ? (
-              <img src={preview} alt="미리보기" className="h-auto max-w-full" />
-            ) : (
-              <video src={preview} controls className="h-auto max-w-full" />
-            )}
+        {postData.image.length > 0 && (
+          <div className="grid grid-cols-3 gap-2 mb-4">
+            {postData.image.map((file, index) => (
+              <div key={index} className="relative">
+                <img
+                  src={URL.createObjectURL(file)}
+                  alt={`미리보기 ${index + 1}`}
+                  className="h-auto max-w-full rounded"
+                />
+                <button
+                  type="button"
+                  onClick={() => removeMedia(index)}
+                  className="absolute top-0 right-0 flex items-center justify-center w-5 h-5 text-white bg-red-500 rounded-full"
+                >
+                  ×
+                </button>
+              </div>
+            ))}
           </div>
         )}
         <select
-          value={category}
+          value={postData.category}
           onChange={(e) => {
-            setCategory(e.target.value);
+            setPostData((prevData) => ({ ...prevData, category: e.target.value }));
             setError('');
           }}
           className="w-full p-2 mb-4 border rounded"
@@ -114,24 +143,24 @@ const WritePost = () => {
           <option value="팔">팔</option>
           <option value="등">등</option>
           <option value="가슴">가슴</option>
-          <option value="심사">심사</option>
           <option value="하체">하체</option>
           <option value="어깨">어깨</option>
+          <option value="심사">심사</option>
           <option value="루틴">루틴</option>
           <option value="영양">영양</option>
         </select>
         {error && <p className="mb-4 text-sm text-red-500">{error}</p>}
         <input
           type="text"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
+          value={postData.title}
+          onChange={(e) => setPostData((prevData) => ({ ...prevData, title: e.target.value }))}
           placeholder="제목"
           className="w-full p-2 mb-4 border rounded"
           required
         />
         <textarea
-          value={content}
-          onChange={(e) => setContent(e.target.value)}
+          value={postData.content}
+          onChange={(e) => setPostData((prevData) => ({ ...prevData, content: e.target.value }))}
           placeholder="내용"
           className="w-full h-40 p-2 mb-4 border rounded resize-none"
           required

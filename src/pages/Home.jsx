@@ -10,7 +10,6 @@ import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
 import SearchResults from '../components/SearchResults';
 
-// 상수 및 설정
 const categories = [
   { name: '등', path: '/back', icon: 'M4 12h16M6 8v8M18 8v8M9 8v8M15 8v8' },
   { name: '가슴', path: '/chest', icon: 'M4 12h16M6 8v8M18 8v8M9 8v8M15 8v8' },
@@ -22,7 +21,7 @@ const categories = [
   {
     name: '루틴',
     path: '/routine',
-    icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4',
+    icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4',
   },
   {
     name: '영양',
@@ -77,29 +76,40 @@ const Home = () => {
     // 실제 API 호출로 대체해야 함
     const sampleFeedbackPosts = [
       {
-        id: 1,
+        postId: 1,
         category: '복근',
         title: '복근 운동 피드백 부탁드려요',
-        author: '헬스초보',
+        user: '헬스초보',
+        userId: 'user1',
         date: '2023-04-01',
         image:
           'https://cdn.eyesmag.com/content/uploads/sliderImages/2024/07/05/KakaoTalk_20240705_152931486_07-5f31a62b-2969-433a-97a3-d1c59f6f8a93.jpg',
       },
-      { id: 2, category: '팔', title: '팔 운동 폼 체크해주세요', author: '근육맨', date: '2023-04-02', image: null },
       {
-        id: 3,
+        postId: 2,
+        category: '팔',
+        title: '팔 운동 폼 체크해주세요',
+        user: '근육맨',
+        userId: 'user2',
+        date: '2023-04-02',
+        image: null,
+      },
+      {
+        postId: 3,
         category: '등',
         title: '등 운동 루틴 어떤가요?',
-        author: '등근육킹',
+        user: '등근육킹',
+        userId: 'user3',
         date: '2023-04-03',
         image:
           'https://cdn.eyesmag.com/content/uploads/sliderImages/2024/07/05/KakaoTalk_20240705_152931486_07-5f31a62b-2969-433a-97a3-d1c59f6f8a93.jpg',
       },
       {
-        id: 4,
+        postId: 4,
         category: '가슴',
         title: '벤치프레스 자세 봐주세요',
-        author: '가슴만백날',
+        user: '가슴만백날',
+        userId: 'user4',
         date: '2023-04-04',
         image: null,
       },
@@ -108,19 +118,21 @@ const Home = () => {
 
     const sampleRoutineNutritionPosts = [
       {
-        id: 1,
+        postId: 1,
         category: '루틴',
         title: '헬린이 전신 운동 루틴',
-        author: '헬스마스터',
+        user: '헬스마스터',
+        userId: 'user5',
         date: '2024-07-31',
         image:
           'https://cdn.eyesmag.com/content/uploads/sliderImages/2024/07/05/KakaoTalk_20240705_152931486_07-5f31a62b-2969-433a-97a3-d1c59f6f8a93.jpg',
       },
       {
-        id: 2,
+        postId: 2,
         category: '영양',
         title: '근육 증가를 위한 식단 공유',
-        author: '단백질왕',
+        user: '단백질왕',
+        userId: 'user6',
         date: '2024-07-31',
         image: null,
       },
@@ -173,8 +185,8 @@ const Home = () => {
     if (isAuthenticated) {
       const path =
         category === 'routine' || category === 'nutrition'
-          ? `/routine-nutrition/${category}/${post.id}`
-          : `/feedback/${getCategoryPath(post.category)}/${post.id}`;
+          ? `/routine-nutrition/${category}/${post.postId}`
+          : `/feedback/${getCategoryPath(post.category)}/${post.postId}`;
       navigate(path);
     } else {
       showLoginRequiredMessage();
@@ -258,7 +270,7 @@ const Home = () => {
           <div className="grid grid-cols-2 gap-4">
             {posts.map((post) => (
               <div
-                key={post.id}
+                key={post.postId}
                 className="overflow-hidden border rounded-lg shadow-sm cursor-pointer transition-all duration-200 ease-in-out hover:shadow-md hover:border-[#2EC4B6] active:bg-gray-100"
                 onClick={() => handlePostClick(post, category)}
               >
@@ -274,7 +286,7 @@ const Home = () => {
                       <h3 className="text-xs truncate sm:text-sm font-GmarketMedium">{post.title}</h3>
                     </div>
                     <div>
-                      <p className="text-xs text-gray-600 font-GmarketLight">{post.author}</p>
+                      <p className="text-xs text-gray-600 font-GmarketLight">{post.user}</p>
                       <p className="text-xs text-gray-400 font-GmarketLight">{post.date}</p>
                     </div>
                   </div>
