@@ -3,72 +3,61 @@ import { useParams, Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import Header from '../../components/Header';
 import AppBar from '../../components/AppBar';
+import axios from 'axios';
 
 const CategoryFeedback = () => {
   const { category } = useParams();
-  const [posts, setPosts] = useState([]);
+  const [allPosts, setAllPosts] = useState([]);
   const [sortBy, setSortBy] = useState('최신순');
   const { state } = useAuth();
   const { isAuthenticated } = state;
 
-  // 카테고리를 한글로
-  const getCategoryKorean = (category) => {
-    switch (category) {
-      case 'abs':
-        return '복근';
-      case 'arm':
-        return '팔';
-      case 'back':
-        return '등';
-      case 'chest':
-        return '가슴';
-      case 'evaluation':
-        return '심사';
-      case 'leg':
-        return '하체';
-      case 'shoulder':
-        return '어깨';
-      default:
-        return category;
-    }
+  // 카테고리 매핑
+  const categoryMapping = {
+    abs: '복근',
+    arm: '팔',
+    back: '등',
+    chest: '가슴',
+    evaluation: '심사',
+    leg: '하체',
+    shoulder: '어깨',
   };
 
   useEffect(() => {
-    // API 불러오기
-    const fetchPosts = async () => {
-      setPosts([
-        {
-          postId: 1,
-          category: category,
-          title: '운동 피드백 부탁드려요',
-          user: '헬스초보',
-          userId: 'user1',
-          date: '2024-07-24',
-          likes: 5,
-        },
-        {
-          postId: 2,
-          category: category,
-          title: '운동 폼 체크해주세요',
-          user: '근육맨',
-          userId: 'user2',
-          date: '2024-07-25',
-          likes: 10,
-        },
-        {
-          postId: 3,
-          category: category,
-          title: '운동 루틴 어떤가요?',
-          user: '운동마니아',
-          userId: 'user3',
-          date: '2024-07-26',
-          likes: 7,
-        },
-      ]);
-    };
+    fetchAllPosts();
+  }, []);
 
-    fetchPosts();
-  }, [category]);
+  const fetchAllPosts = async () => {
+    try {
+      const response = await axios.get('http://ec2-54-180-248-238.ap-northeast-2.compute.amazonaws.com:8080/api/post');
+      // const formattedPosts = response.data.map((post) => ({
+      //   postId: post.id,
+      //   category: post.category,
+      //   title: post.title,
+      //   user: post.username,
+      //   userId: post.userId,
+      //   date: new Date(post.createdDate).toLocaleDateString(),
+      //   likes: post.likesNum,
+      // }));
+      const formattedPosts = response.data.map((post) => ({
+        postId: post.id,
+        category: post.category,
+        title: post.title,
+        user: post.username,
+        userId: post.userId,
+        content: post.content,
+        date: new Date(post.createdDate).toLocaleDateString(),
+        likes: post.likesNum,
+        attachments: post.attachments,
+        liked: post.liked,
+      }));
+      setAllPosts(formattedPosts);
+    } catch (error) {
+      console.error('게시물을 가져오는 중 오류 발생:', error);
+    }
+  };
+
+  const filteredPosts = allPosts.filter((post) => post.category === categoryMapping[category]);
 
   const sortPosts = (posts) => {
     if (sortBy === '최신순') {
@@ -79,35 +68,14 @@ const CategoryFeedback = () => {
     return posts;
   };
 
-  const sortedPosts = sortPosts(posts);
-
-  const getCategoryPath = (category) => {
-    switch (category) {
-      case '복근':
-        return 'abs';
-      case '팔':
-        return 'arm';
-      case '등':
-        return 'back';
-      case '가슴':
-        return 'chest';
-      case '심사':
-        return 'evaluation';
-      case '하체':
-        return 'leg';
-      case '어깨':
-        return 'shoulder';
-      default:
-        return category.toLowerCase();
-    }
-  };
+  const sortedPosts = sortPosts(filteredPosts);
 
   return (
     <div className="max-w-[600px] min-h-[100vh] mx-auto p-4 bg-white">
       <Header isAuthenticated={isAuthenticated} />
       <div className="mt-8">
         <div className="flex items-center justify-between mb-5">
-          <h1 className="text-xl font-GmarketBold">{getCategoryKorean(category)} 게시글 목록</h1>
+          <h1 className="text-xl font-GmarketBold">{categoryMapping[category]} 게시글 목록</h1>
           <Link
             to="/write-post"
             className="inline-block px-3 py-1 text-sm text-white bg-[#2EC4B6] rounded-lg font-GmarketMedium hover:bg-[#25A99D] active:bg-[#1F8C82]"
@@ -130,13 +98,11 @@ const CategoryFeedback = () => {
         </div>
         <div className="grid gap-4">
           {sortedPosts.map((post) => (
-            <Link key={post.postId} to={`/feedback/${getCategoryPath(post.category)}/${post.postId}`} className="block">
+            <Link key={post.postId} to={`/feedback/${post.postId}`} state={{ postData: post }} className="block">
               <div className="px-3 py-2 border rounded-lg shadow-sm border-[#DDDDDD] cursor-pointer transition-all duration-200 ease-in-out hover:shadow-md hover:border-[#2EC4B6] active:bg-gray-100">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center justify-center">
-                    <span className="text-sm font-GmarketMedium text-[#2EC4B6] w-8">
-                      {getCategoryKorean(post.category)}
-                    </span>
+                    <span className="text-sm font-GmarketMedium text-[#2EC4B6] w-8">{post.category}</span>
                     <h3 className="flex ml-1 text-sm font-GmarketLight">{post.title}</h3>
                   </div>
                   <div className="flex items-center justify-center">
@@ -150,7 +116,6 @@ const CategoryFeedback = () => {
           ))}
         </div>
       </div>
-
       <AppBar />
     </div>
   );

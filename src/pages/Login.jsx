@@ -10,7 +10,7 @@ const Login = () => {
 
   return (
     <div className="max-w-[600px] h-[100vh] ml-auto mr-auto bg-white font-bold text-3xl">
-      {/* header */}
+      {/* 헤더 */}
       <div className="flex items-center h-[6%] p-[10px] border-solid border-b-[2.5px] border-[#dddddd]">
         <button className="w-[5%] cursor-pointer" onClick={onClickBtn}>
           <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -20,7 +20,7 @@ const Login = () => {
         <span className="flex justify-center items-center w-[90%] text-xl font-GmarketMedium">로그인</span>
         <div className="w-[5%]"></div>
       </div>
-      {/* body */}
+      {/* 바디 */}
       <div className="w-[100%] h-[94%] p-10 flex flex-col justify-between">
         <div className="w-[100%] h-[75%] flex flex-col justify-center">
           <div className="flex items-center justify-center p-3 bg-white mb-[5px]">

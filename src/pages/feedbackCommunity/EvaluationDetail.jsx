@@ -22,7 +22,7 @@ const EvaluationDetail = () => {
         category: 'evaluation',
         title: '고수 신청합니다.',
         user: '헬스고수',
-        userId: 'user123',
+        userId: 123,
         date: '2024-07-28',
         content: '운동경력 5년차이고, 3대 700입니다. 자세 봐주시고 찬성 부탁드립니다!',
         image:
@@ -31,7 +31,6 @@ const EvaluationDetail = () => {
       };
       setPost(samplePost);
       setLikes(samplePost.likes);
-
       setVotes({ agree: 15, disagree: 5 });
     };
 
@@ -63,7 +62,6 @@ const EvaluationDetail = () => {
         [voteType]: prev[voteType] + 1,
       }));
     }
-
     // 여기에 서버로 투표 정보를 보내는 API 호출
   };
 

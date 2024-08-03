@@ -7,8 +7,8 @@ import AppBar from '../components/AppBar';
 
 const WritePost = () => {
   const [postData, setPostData] = useState({
-    postId: '',
-    userId: '',
+    postId: 0,
+    userId: 0,
     category: '',
     title: '',
     content: '',
@@ -30,7 +30,7 @@ const WritePost = () => {
     } else {
       setPostData((prevData) => ({
         ...prevData,
-        userId: user.id,
+        userId: parseInt(user.id, 10),
         user: user.name,
       }));
     }
@@ -45,7 +45,7 @@ const WritePost = () => {
 
     try {
       const formData = new FormData();
-      formData.append('userId', postData.userId);
+      formData.append('userId', postData.userId.toString());
       formData.append('category', postData.category);
       formData.append('title', postData.title);
       formData.append('content', postData.content);

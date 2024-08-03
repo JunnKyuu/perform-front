@@ -36,7 +36,7 @@ const EditPostPage = () => {
       // const post = response.data;
       const samplePost = {
         postId: id,
-        userId: 'user123',
+        userId: 123,
         user: '헬스초보',
         category: '복근',
         title: '복근 운동 피드백 부탁드려요',
