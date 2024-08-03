@@ -43,7 +43,7 @@ const CategorySidebar = ({ isOpen, onClose }) => {
           {feedbackCategories.map((category) => (
             <li key={category.ko} className="mb-2">
               <Link
-                to={`/feedback/${category.en}`}
+                to={`/feedback/category/${category.en}`}
                 className="block px-4 py-2 text-sm text-gray-700 rounded hover:bg-gray-100 font-GmarketLight"
                 onClick={onClose}
               >

@@ -28,14 +28,14 @@ const RoutineNutritionDetail = () => {
   };
 
   useEffect(() => {
-    // api로 실제 데이터 가져와야함
+    // 실제 데이터 가져오기
     const fetchPost = async () => {
       const samplePost = {
         postId: postId,
         category: category,
         title: '초보자를 위한 전신 운동 루틴',
         user: '헬스마스터',
-        userId: 'user1',
+        userId: 1,
         date: '2024-07-24',
         content:
           '처음 운동을 시작하는 분들을 위한 전신 운동 루틴을 공유합니다. 일주일에 3번, 각 운동은 3세트씩 진행하세요.',
@@ -50,12 +50,11 @@ const RoutineNutritionDetail = () => {
       setLikes(samplePost.likes);
       setImages(samplePost.images);
 
-      // 임시 댓글 데이터에 master 정보 추가
       const sampleComments = [
         {
           commentId: 1,
           postId: postId,
-          userId: 'user2',
+          userId: 2,
           user: '운동초보',
           content: '정말 도움이 됩니다. 감사합니다!',
           likes: 3,
@@ -65,7 +64,7 @@ const RoutineNutritionDetail = () => {
         {
           commentId: 2,
           postId: postId,
-          userId: 'user3',
+          userId: 3,
           user: '헬스매니아',
           content: '좋은 루틴이네요. 저도 시도해 봐야겠어요.',
           likes: 5,
@@ -79,13 +78,6 @@ const RoutineNutritionDetail = () => {
     fetchPost();
   }, [category, postId]);
 
-  const handleKeyDown = (e) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      submitComment();
-    }
-  };
-
   const handleCommentSubmit = (e) => {
     e.preventDefault();
     submitComment();
@@ -97,12 +89,12 @@ const RoutineNutritionDetail = () => {
     const newCommentObj = {
       commentId: comments.length + 1,
       postId: postId,
-      userId: user?.id || 'anonymous',
+      userId: user?.id ? parseInt(user.id, 10) : 0,
       user: user?.name || '익명',
       content: newComment,
       likes: 0,
       date: new Date().toISOString().split('T')[0],
-      master: user?.master || false, // 마스터 정보 추가
+      master: user?.master || false,
     };
 
     setComments([...comments, newCommentObj]);
@@ -208,7 +200,6 @@ const RoutineNutritionDetail = () => {
                   >
                     {likedComments[comment.commentId] ? '❤️' : '🤍'}
                   </button>
-                  <span className="text-xs text-gray-500">{comment.likes}</span>
                 </div>
               </div>
             </div>
@@ -219,7 +210,6 @@ const RoutineNutritionDetail = () => {
             <textarea
               value={newComment}
               onChange={(e) => setNewComment(e.target.value)}
-              onKeyDown={handleKeyDown}
               className="font-GmarketLight text-sm w-full p-2 border rounded-lg resize-none focus:outline-none focus:ring-1 focus:ring-[#2EC4B6] focus:border-[#2EC4B6] transition duration-200 ease-in-out"
               rows="3"
               placeholder="댓글을 작성해주세요..."

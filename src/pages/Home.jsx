@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
 import Header from '../components/Header';
@@ -9,14 +9,15 @@ import Slider from 'react-slick';
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
 import SearchResults from '../components/SearchResults';
+import axios from 'axios';
 
 const categories = [
-  { name: '등', path: '/back', icon: 'M4 12h16M6 8v8M18 8v8M9 8v8M15 8v8' },
-  { name: '가슴', path: '/chest', icon: 'M4 12h16M6 8v8M18 8v8M9 8v8M15 8v8' },
-  { name: '어깨', path: '/shoulder', icon: 'M4 12h16M6 8v8M18 8v8M9 8v8M15 8v8' },
-  { name: '팔', path: '/arm', icon: 'M4 12h16M6 8v8M18 8v8M9 8v8M15 8v8' },
-  { name: '하체', path: '/leg', icon: 'M4 12h16M6 8v8M18 8v8M9 8v8M15 8v8' },
-  { name: '복근', path: '/abs', icon: 'M4 12h16M6 8v8M18 8v8M9 8v8M15 8v8' },
+  { name: '등', path: '/back', icon: 'M4 7h4v10H4zM16 7h4v10h-4zM8 12h8' },
+  { name: '가슴', path: '/chest', icon: 'M4 7h4v10H4zM16 7h4v10h-4zM8 12h8' },
+  { name: '어깨', path: '/shoulder', icon: 'M4 7h4v10H4zM16 7h4v10h-4zM8 12h8' },
+  { name: '팔', path: '/arm', icon: 'M4 7h4v10H4zM16 7h4v10h-4zM8 12h8' },
+  { name: '하체', path: '/leg', icon: 'M4 7h4v10H4zM16 7h4v10h-4zM8 12h8' },
+  { name: '복근', path: '/abs', icon: 'M4 7h4v10H4zM16 7h4v10h-4zM8 12h8' },
   { name: '심사', path: '/evaluation', icon: 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z' },
   {
     name: '루틴',
@@ -72,72 +73,31 @@ const Home = () => {
     fetchPosts();
   }, []);
 
-  const fetchPosts = () => {
-    // 실제 API 호출로 대체해야 함
-    const sampleFeedbackPosts = [
-      {
-        postId: 1,
-        category: '복근',
-        title: '복근 운동 피드백 부탁드려요',
-        user: '헬스초보',
-        userId: 'user1',
-        date: '2023-04-01',
-        image:
-          'https://cdn.eyesmag.com/content/uploads/sliderImages/2024/07/05/KakaoTalk_20240705_152931486_07-5f31a62b-2969-433a-97a3-d1c59f6f8a93.jpg',
-      },
-      {
-        postId: 2,
-        category: '팔',
-        title: '팔 운동 폼 체크해주세요',
-        user: '근육맨',
-        userId: 'user2',
-        date: '2023-04-02',
-        image: null,
-      },
-      {
-        postId: 3,
-        category: '등',
-        title: '등 운동 루틴 어떤가요?',
-        user: '등근육킹',
-        userId: 'user3',
-        date: '2023-04-03',
-        image:
-          'https://cdn.eyesmag.com/content/uploads/sliderImages/2024/07/05/KakaoTalk_20240705_152931486_07-5f31a62b-2969-433a-97a3-d1c59f6f8a93.jpg',
-      },
-      {
-        postId: 4,
-        category: '가슴',
-        title: '벤치프레스 자세 봐주세요',
-        user: '가슴만백날',
-        userId: 'user4',
-        date: '2023-04-04',
-        image: null,
-      },
-    ];
-    setFeedbackPosts(sampleFeedbackPosts);
+  const fetchPosts = async () => {
+    try {
+      const response = await axios.get('http://ec2-54-180-248-238.ap-northeast-2.compute.amazonaws.com:8080/api/post');
+      const posts = response.data.map((post) => ({
+        postId: post.id,
+        category: post.category,
+        title: post.title,
+        user: post.username,
+        userId: post.userId,
+        date: new Date(post.createdDate).toLocaleDateString(),
+        image: post.attachments.length > 0 ? post.attachments[0].filePath : null,
+        likesNum: post.likesNum,
+        content: post.content,
+        attachments: post.attachments,
+        liked: post.liked,
+      }));
 
-    const sampleRoutineNutritionPosts = [
-      {
-        postId: 1,
-        category: '루틴',
-        title: '헬린이 전신 운동 루틴',
-        user: '헬스마스터',
-        userId: 'user5',
-        date: '2024-07-31',
-        image:
-          'https://cdn.eyesmag.com/content/uploads/sliderImages/2024/07/05/KakaoTalk_20240705_152931486_07-5f31a62b-2969-433a-97a3-d1c59f6f8a93.jpg',
-      },
-      {
-        postId: 2,
-        category: '영양',
-        title: '근육 증가를 위한 식단 공유',
-        user: '단백질왕',
-        userId: 'user6',
-        date: '2024-07-31',
-        image: null,
-      },
-    ];
-    setRoutineNutritionPosts(sampleRoutineNutritionPosts);
+      const feedbackPosts = posts.filter((post) => post.category !== '루틴' && post.category !== '영양');
+      const routineNutritionPosts = posts.filter((post) => post.category === '루틴' || post.category === '영양');
+
+      setFeedbackPosts(feedbackPosts);
+      setRoutineNutritionPosts(routineNutritionPosts);
+    } catch (error) {
+      console.error('게시물을 가져오는 중 오류 발생:', error);
+    }
   };
 
   const getCategoryPath = (category) => {
@@ -161,7 +121,8 @@ const Home = () => {
     if (path === '/routine' || path === '/nutrition') {
       navigate(`/routine-nutrition${path}`);
     } else {
-      navigate(`/feedback${path}`);
+      const category = path.slice(1);
+      navigate(`/feedback/category/${category}`);
     }
   };
 
@@ -182,18 +143,28 @@ const Home = () => {
   };
 
   const handlePostClick = (post, category) => {
-    if (isAuthenticated) {
-      const path =
-        category === 'routine' || category === 'nutrition'
-          ? `/routine-nutrition/${category}/${post.postId}`
-          : `/feedback/${getCategoryPath(post.category)}/${post.postId}`;
-      navigate(path);
+    if (category === 'routine' || category === 'nutrition') {
+      navigate(`/routine-nutrition/${category}/${post.postId}`, { state: { postData: post } });
     } else {
-      showLoginRequiredMessage();
+      navigate(`/feedback/${post.postId}`, {
+        state: {
+          postData: {
+            postId: post.postId,
+            category: post.category,
+            title: post.title,
+            user: post.user,
+            userId: post.userId,
+            content: post.content,
+            date: post.date,
+            likes: post.likesNum,
+            attachments: post.attachments,
+            liked: post.liked,
+          },
+        },
+      });
     }
   };
 
-  // 컴포넌트 렌더링 함수
   const renderSearchBar = () => (
     <form className="w-[90%] p-3">
       <input
@@ -268,7 +239,7 @@ const Home = () => {
         </div>
         {posts.length > 0 ? (
           <div className="grid grid-cols-2 gap-4">
-            {posts.map((post) => (
+            {posts.slice(0, 4).map((post) => (
               <div
                 key={post.postId}
                 className="overflow-hidden border rounded-lg shadow-sm cursor-pointer transition-all duration-200 ease-in-out hover:shadow-md hover:border-[#2EC4B6] active:bg-gray-100"
@@ -280,14 +251,31 @@ const Home = () => {
                     alt={post.title}
                     className="object-cover mr-2 rounded-lg w-14 h-14 sm:w-20 sm:h-20"
                   />
-                  <div className="flex flex-col justify-between">
+                  <div className="flex flex-col justify-between w-full">
                     <div>
                       <span className="text-xs sm:text-xs font-GmarketMedium text-[#2EC4B6]">{post.category}</span>
                       <h3 className="text-xs truncate sm:text-sm font-GmarketMedium">{post.title}</h3>
                     </div>
-                    <div>
-                      <p className="text-xs text-gray-600 font-GmarketLight">{post.user}</p>
-                      <p className="text-xs text-gray-400 font-GmarketLight">{post.date}</p>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-xs text-gray-600 font-GmarketLight">{post.user}</p>
+                        <p className="text-xs text-gray-400 font-GmarketLight">{post.date}</p>
+                      </div>
+                      <div className="flex items-center">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          className="w-4 h-4 mr-1 text-red-500"
+                          viewBox="0 0 20 20"
+                          fill="currentColor"
+                        >
+                          <path
+                            fillRule="evenodd"
+                            d="M3.172 5.172a4 4 0 015.656 0L10 6.343l1.172-1.171a4 4 0 115.656 5.656L10 17.657l-6.828-6.829a4 4 0 010-5.656z"
+                            clipRule="evenodd"
+                          />
+                        </svg>
+                        <span className="text-xs text-gray-600 font-GmarketLight">{post.likesNum}</span>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -295,7 +283,7 @@ const Home = () => {
             ))}
           </div>
         ) : (
-          <p className="text-center text-gray-500">게시물이 없습니다.</p>
+          <p className="text-center text-[#FF6B6B] font-GmarketMedium text-sm">게시물이 없습니다.</p>
         )}
       </div>
     );
@@ -324,7 +312,7 @@ const Home = () => {
           navigate={navigate}
           getCategoryPath={getCategoryPath}
           isAuthenticated={isAuthenticated}
-          showLoginMessage={showLoginRequiredMessage}
+          handlePostClick={handlePostClick}
         />
       )}
       {showLoginMessage && (

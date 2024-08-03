@@ -29,19 +29,16 @@ const App = () => {
           <Route path="/login" element={<Login />} />
           <Route path="/auth/kakao/callback" element={<Callback />} />
           <Route path="/feedback" element={<FeedbackCommunity />} />
-          <Route path="/feedback/:category/:id" element={<ProtectedRoute element={<FeedbackDetail />} />} />
-          <Route path="/feedback/evaluation/:id" element={<ProtectedRoute element={<EvaluationDetail />} />} />
-          <Route path="/feedback/:category" element={<CategoryFeedback />} />
+          <Route path="/feedback/:postId" element={<FeedbackDetail />} />
+          <Route path="/feedback/evaluation/:postId" element={<EvaluationDetail />} />
+          <Route path="/feedback/category/:category" element={<CategoryFeedback />} />
           <Route path="/write-post" element={<ProtectedRoute element={<WritePost />} />} />
           <Route path="/my-page" element={<ProtectedRoute element={<MyPage />} />} />
-          <Route path="/edit-post/:id" element={<ProtectedRoute element={<EditPostPage />} />} />
+          <Route path="/edit-post/:postId" element={<ProtectedRoute element={<EditPostPage />} />} />
           <Route path="/routine-nutrition" element={<RoutineNutritionCommunity />} />
-          <Route
-            path="/routine-nutrition/:category/:id"
-            element={<ProtectedRoute element={<RoutineNutritionDetail />} />}
-          />
+          <Route path="/routine-nutrition/:category/:postId" element={<RoutineNutritionDetail />} />
           <Route path="/routine-nutrition/:category" element={<CategoryRoutineNutrition />} />
-          <Route path="*" element={<ProtectedRoute element={<Notfound />} />} />
+          <Route path="*" element={<Notfound />} />
         </Routes>
       </div>
     </AuthProvider>

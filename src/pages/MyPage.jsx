@@ -21,7 +21,7 @@ const MyPage = () => {
 
   useEffect(() => {
     setUserInfo({
-      userId: 'user123',
+      userId: 123,
       name: '헬스왕',
       master: true,
       profileImage:
@@ -33,7 +33,7 @@ const MyPage = () => {
     setPosts([
       {
         postId: 1,
-        userId: 'user123',
+        userId: 123,
         category: '루틴',
         title: '오늘의 운동 루틴',
         content: '오늘의 운동 루틴 내용...',
@@ -44,7 +44,7 @@ const MyPage = () => {
       },
       {
         postId: 2,
-        userId: 'user123',
+        userId: 123,
         category: '심사',
         title: '벤치프레스 자세 피드백 부탁드려요',
         content: '벤치프레스 자세 내용...',
@@ -55,7 +55,7 @@ const MyPage = () => {
       },
       {
         postId: 3,
-        userId: 'user123',
+        userId: 123,
         category: '영양',
         title: '단백질 보충제 추천',
         content: '단백질 보충제 추천 내용...',
@@ -118,7 +118,7 @@ const MyPage = () => {
         }));
       }
     } else {
-      // FormData가 아닌 경우 (기존 로직)
+      // FormData가 아닌 경우
       setUserInfo((prevInfo) => ({
         ...prevInfo,
         ...updatedProfile,
@@ -170,9 +170,7 @@ const MyPage = () => {
               {posts.map((post) => {
                 const feedbackCategories = ['등', '가슴', '어깨', '팔', '하체', '복근', '심사'];
                 const routineNutritionCategories = ['루틴', '영양'];
-
                 const englishCategory = getCategoryInEnglish(post.category);
-
                 let linkPath;
                 if (feedbackCategories.includes(post.category)) {
                   linkPath = `/feedback/${englishCategory}/${post.postId}`;
@@ -181,7 +179,6 @@ const MyPage = () => {
                 } else {
                   linkPath = `/post/${post.postId}`;
                 }
-
                 return (
                   <li key={post.postId} className="pb-2 border-b">
                     <div className="flex items-center justify-between">
