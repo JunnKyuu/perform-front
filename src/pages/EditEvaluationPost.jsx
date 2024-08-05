@@ -1,17 +1,17 @@
 import React, { useState, useRef, useEffect } from 'react';
 import axios from 'axios';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
-import Header from '../../components/Header';
-import AppBar from '../../components/AppBar';
+import { useNavigate, useParams } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import Header from '../components/Header';
+import AppBar from '../components/AppBar';
 
-const WriteEvaluation = () => {
+const EditEvaluationPost = () => {
+  const { postId } = useParams();
   const [postData, setPostData] = useState({
     title: '',
     content: '',
-    image: [],
+    attachments: [],
   });
-  const [userData, setUserData] = useState(null);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const fileInputRef = useRef(null);
@@ -19,85 +19,79 @@ const WriteEvaluation = () => {
   const { accessToken } = useAuth();
 
   useEffect(() => {
-    const fetchUserData = async () => {
-      if (!accessToken) {
-        navigate('/login', { state: { from: '/write-evaluation' } });
-        return;
-      }
-
+    const fetchPostData = async () => {
       try {
-        const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/users/my`, {
+        const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/reviewpost/${postId}`, {
           headers: {
-            Authorization: accessToken,
+            Authorization: `${accessToken}`,
           },
         });
-
-        setUserData(response.data);
+        const fetchedPost = response.data;
+        setPostData({
+          title: fetchedPost.title,
+          content: fetchedPost.content,
+          attachments: fetchedPost.attachments || [],
+        });
         setIsLoading(false);
       } catch (error) {
-        console.error('사용자 정보 조회 중 오류 발생:', error);
-        navigate('/login', { state: { from: '/write-evaluation' } });
+        console.error('게시글 정보 조회 중 오류 발생:', error);
+        setError('게시글 정보를 불러오는 데 실패했습니다.');
+        setIsLoading(false);
       }
     };
 
-    fetchUserData();
-  }, [accessToken, navigate]);
+    fetchPostData();
+  }, [postId, accessToken, navigate]);
+
+  const handleFileChange = (e) => {
+    const files = Array.from(e.target.files);
+    setPostData((prevData) => ({
+      ...prevData,
+      attachments: [...prevData.attachments, ...files.map((file) => ({ file }))],
+    }));
+  };
+
+  const removeMedia = (index) => {
+    setPostData((prevData) => ({
+      ...prevData,
+      attachments: prevData.attachments.filter((_, i) => i !== index),
+    }));
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!userData) {
-      setError('사용자 정보를 불러오는 중 오류가 발생했습니다.');
-      return;
-    }
-
     try {
+      const formData = new FormData();
       const reviewPostObject = {
         title: postData.title,
         content: postData.content,
       };
 
-      const formData = new FormData();
-
-      // reviewPost 객체를 JSON Blob으로 변환하여 FormData에 추가
+      // reviewPost를 JSON Blob으로 변환
       const postBlob = new Blob([JSON.stringify(reviewPostObject)], { type: 'application/json' });
       formData.append('reviewPost', postBlob, 'reviewPost.json');
 
-      // 파일 추가
-      postData.image.forEach((file, index) => {
-        formData.append(`files`, file, file.name);
+      // 새로운 파일만 추가
+      postData.attachments.forEach((attachment) => {
+        if (attachment.file instanceof File) {
+          formData.append('files', attachment.file, attachment.file.name);
+        }
       });
 
-      const response = await axios.post(`${import.meta.env.VITE_API_BASE_URL}/api/reviewpost/upload`, formData, {
+      await axios.patch(`${import.meta.env.VITE_API_BASE_URL}/api/reviewpost/${postId}`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
           Authorization: `${accessToken}`,
         },
       });
 
-      console.log('심사 게시글이 성공적으로 저장되었습니다.');
-      navigate('/evaluation');
+      console.log('심사 게시글이 성공적으로 수정되었습니다.');
+      navigate('/my-page');
     } catch (error) {
-      console.error('게시글 제출 중 오류 발생:', error);
-      setError('게시글 제출 중 오류가 발생했습니다. 다시 시도해 주세요.');
+      console.error('게시글 수정 중 오류 발생:', error);
+      setError('게시글 수정 중 오류가 발생했습니다. 다시 시도해 주세요.');
     }
-  };
-
-  const handleFileChange = (e) => {
-    if (e.target.files.length > 0) {
-      const file = e.target.files[0];
-      setPostData((prevData) => ({
-        ...prevData,
-        image: [...prevData.image, file],
-      }));
-    }
-  };
-
-  const removeMedia = (index) => {
-    setPostData((prevData) => ({
-      ...prevData,
-      image: prevData.image.filter((_, i) => i !== index),
-    }));
   };
 
   if (isLoading) {
@@ -109,8 +103,8 @@ const WriteEvaluation = () => {
       <Header />
       <div className="flex items-center justify-between mt-8 mb-4">
         <div className="flex items-center">
-          <h1 className="text-xl font-GmarketBold">심사 게시글 작성</h1>
-          <span className="ml-2 text-sm text-red-500 font-GmarketBold">(사진 첨부 필수)</span>
+          <h1 className="text-xl font-GmarketBold">심사 게시글 수정</h1>
+          <span className="ml-2 text-sm text-red-500 font-GmarketBold">(사진 첨부 필수 / 투표중일 경우 수정 불가)</span>
         </div>
         <button
           type="button"
@@ -128,12 +122,12 @@ const WriteEvaluation = () => {
           ref={fileInputRef}
           className="hidden"
         />
-        {postData.image.length > 0 && (
+        {postData.attachments.length > 0 && (
           <div className="grid grid-cols-3 gap-2 mb-4">
-            {postData.image.map((file, index) => (
+            {postData.attachments.map((attachment, index) => (
               <div key={index} className="relative">
                 <img
-                  src={URL.createObjectURL(file)}
+                  src={attachment.file instanceof File ? URL.createObjectURL(attachment.file) : attachment.filePath}
                   alt={`미리보기 ${index + 1}`}
                   className="h-auto max-w-full rounded"
                 />
@@ -168,7 +162,7 @@ const WriteEvaluation = () => {
           type="submit"
           className="w-full p-2 text-[#2EC4B6] border border-[#2EC4B6] rounded hover:text-white hover:bg-[#2EC4B6] active:text-[#2EC4B6] active:bg-white transition-colors duration-200"
         >
-          심사 게시하기
+          심사 게시글 수정하기
         </button>
       </form>
       <AppBar />
@@ -176,4 +170,4 @@ const WriteEvaluation = () => {
   );
 };
 
-export default WriteEvaluation;
+export default EditEvaluationPost;

@@ -13,7 +13,7 @@ const FeedbackCommunity = () => {
   const [sortBy, setSortBy] = useState('최신순');
   const navigate = useNavigate();
 
-  const categories = ['전체', '복근', '팔', '등', '가슴', '심사', '하체', '어깨'];
+  const categories = ['전체', '복근', '팔', '등', '가슴', '하체', '어깨'];
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -27,18 +27,20 @@ const FeedbackCommunity = () => {
     const fetchPosts = async () => {
       try {
         const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/post`);
-        const formattedPosts = response.data.map((post) => ({
-          postId: post.id,
-          category: post.category,
-          title: post.title,
-          user: post.username,
-          userId: post.userId,
-          content: post.content,
-          date: new Date(post.createdDate).toLocaleDateString(),
-          likes: post.likesNum,
-          attachments: post.attachments,
-          liked: post.liked,
-        }));
+        const formattedPosts = response.data
+          .filter((post) => post.category !== '루틴' && post.category !== '영양') // 루틴과 영양 카테고리 제외
+          .map((post) => ({
+            postId: post.id,
+            category: post.category,
+            title: post.title,
+            user: post.username,
+            userId: post.userId,
+            content: post.content,
+            date: new Date(post.createdDate).toLocaleDateString(),
+            likes: post.likesNum,
+            attachments: post.attachments,
+            liked: post.liked,
+          }));
         setPosts(formattedPosts);
       } catch (error) {
         console.error('게시물을 가져오는 중 오류 발생:', error);
@@ -84,7 +86,7 @@ const FeedbackCommunity = () => {
 
   const handleWritePost = () => {
     if (!accessToken) {
-      alert('로그인이 필요한 서비스입니다.');
+      alert('로그인�� 필요한 서비스입니다.');
       navigate('/login');
     } else {
       navigate('/write-post');

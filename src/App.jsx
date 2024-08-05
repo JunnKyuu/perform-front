@@ -12,7 +12,7 @@ import CategoryFeedback from './pages/feedbackCommunity/CategoryFeedback';
 import EvaluationDetail from './pages/feedbackCommunity/EvaluationDetail';
 import WriteEvaluation from './pages/feedbackCommunity/WriteEvaluation';
 import WritePost from './pages/WritePost';
-import EditPostPage from './pages/\bEditPostPage';
+import EditPost from './pages/\bEditPost';
 
 import RoutineNutritionCommunity from './pages/routineNutritionCommunity/RoutineNutritionCommunity';
 import RoutineNutritionDetail from './pages/routineNutritionCommunity/RoutineNutritionDetail';
@@ -20,6 +20,8 @@ import CategoryRoutineNutrition from './pages/routineNutritionCommunity/Category
 
 import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
+import EvaluationCommunity from './pages/feedbackCommunity/EvaluationCommunity';
+import EditEvaluationPost from './pages/EditEvaluationPost';
 
 const App = () => {
   return (
@@ -30,13 +32,15 @@ const App = () => {
           <Route path="/login" element={<Login />} />
           <Route path="/auth/kakao/callback" element={<Callback />} />
           <Route path="/feedback" element={<FeedbackCommunity />} />
+          <Route path="/evaluation" element={<EvaluationCommunity />} />
           <Route path="/feedback/:postId" element={<FeedbackDetail />} />
-          <Route path="/feedback/evaluation/:postId" element={<EvaluationDetail />} />
+          <Route path="/evaluation/:postId" element={<EvaluationDetail />} />
           <Route path="/feedback/category/:category" element={<CategoryFeedback />} />
           <Route path="/write-post" element={<ProtectedRoute element={<WritePost />} />} />
           <Route path="/write-evaluation" element={<ProtectedRoute element={<WriteEvaluation />} />} />
           <Route path="/my-page" element={<ProtectedRoute element={<MyPage />} />} />
-          <Route path="/edit-post/:id" element={<ProtectedRoute element={<EditPostPage />} />} />
+          <Route path="/edit-post/:id" element={<ProtectedRoute element={<EditPost />} />} />
+          <Route path="/edit-evaluation-post/:postId" element={<ProtectedRoute element={<EditEvaluationPost />} />} />
           <Route path="/routine-nutrition" element={<RoutineNutritionCommunity />} />
           <Route path="/routine-nutrition/:category/:postId" element={<RoutineNutritionDetail />} />
           <Route path="/routine-nutrition/:category" element={<CategoryRoutineNutrition />} />

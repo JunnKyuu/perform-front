@@ -9,90 +9,113 @@ const EvaluationDetail = () => {
   const { postId } = useParams();
   const [post, setPost] = useState(null);
   const [userVote, setUserVote] = useState(null);
-  const { state } = useAuth();
-  const { isAuthenticated, user } = state;
+  const { accessToken } = useAuth();
+  const [showLoginMessage, setShowLoginMessage] = useState(false);
+  const [user, setUser] = useState(null);
 
   useEffect(() => {
-    const fetchPost = async () => {
+    const fetchUserAndPost = async () => {
+      if (!accessToken) return;
+
       try {
-        const response = await axios.get(`base_url/api/reviewpost/${postId}`);
-        setPost(response.data);
-        // 사용자의 투표 여부 확인
-        const userVoteData = response.data.vote.userVotes.find((vote) => vote.user === user.id);
-        setUserVote(userVoteData ? (userVoteData.isAgree ? 'agree' : 'disagree') : null);
+        // 사용자 정보 가져오기
+        const userResponse = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/users/my`, {
+          headers: { Authorization: accessToken },
+        });
+        setUser(userResponse.data);
+
+        // 게시물 정보 가져오기
+        const postResponse = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/reviewpost/${postId}`, {
+          headers: { Authorization: accessToken },
+        });
+        const postData = postResponse.data;
+        setPost(postData);
       } catch (error) {
-        console.error('게시물 불러오기 실패:', error);
+        console.error('데이터 불러오기 실패:', error);
       }
     };
 
-    fetchPost();
-  }, [postId, user.id]);
+    fetchUserAndPost();
+  }, [postId, accessToken]);
 
   const handleVote = async (voteType) => {
-    if (!isAuthenticated) {
-      alert('투표하려면 로그인이 필요합니다.');
+    if (!accessToken) {
+      setShowLoginMessage(true);
       return;
     }
 
     try {
-      // 투표 API 호출 (실제 엔드포인트로 수정 필요)
-      await axios.post(`base_url/api/vote/${post.vote.id}`, {
-        isAgree: voteType === 'agree',
-      });
+      const isAgree = voteType === 'agree';
+      const response = await axios.post(
+        `${import.meta.env.VITE_API_BASE_URL}/api/uservote/${post.id}?isAgree=${isAgree}`,
+        {},
+        {
+          headers: { Authorization: accessToken },
+        }
+      );
 
-      // 투표 상태 업데이트
       setPost((prevPost) => ({
         ...prevPost,
         vote: {
           ...prevPost.vote,
-          agreeNum: voteType === 'agree' ? prevPost.vote.agreeNum + 1 : prevPost.vote.agreeNum,
-          disagreeNum: voteType === 'disagree' ? prevPost.vote.disagreeNum + 1 : prevPost.vote.disagreeNum,
+          agreeNum: response.data.agreeNum,
+          disagreeNum: response.data.disagreeNum,
         },
       }));
       setUserVote(voteType);
     } catch (error) {
-      console.error('투표 실패:', error);
+      // console.error('투표 실패:', error);
+      alert('투표는 한 번만 가능합니다.');
     }
   };
 
-  const handleLike = async () => {
-    if (!isAuthenticated) {
-      alert('좋아요를 누르려면 로그인이 필요합니다.');
-      return;
-    }
-
-    try {
-      // 좋아요 API 호출 (실제 엔드포인트로 수정 필요)
-      await axios.post(`base_url/api/like/${postId}`);
-
-      // 좋아요 상태 업데이트
-      setPost((prevPost) => ({
-        ...prevPost,
-        likes: prevPost.likes.some((like) => like.user === user.id)
-          ? prevPost.likes.filter((like) => like.user !== user.id)
-          : [...prevPost.likes, { user: user.id }],
-      }));
-    } catch (error) {
-      console.error('좋아요 실패:', error);
+  const getEvaluationStatus = (reviewStatus) => {
+    switch (reviewStatus) {
+      case 'under review':
+        return '심사중';
+      case 'pass':
+        return '합격';
+      case 'non_pass':
+        return '불합격';
+      default:
+        return '알 수 없음';
     }
   };
 
-  if (!post) return <div>로딩 중...</div>;
+  const getStatusColor = (status) => {
+    switch (status) {
+      case '심사중':
+        return 'bg-yellow-200 text-yellow-800';
+      case '합격':
+        return 'bg-green-200 text-green-800';
+      case '불합격':
+        return 'bg-red-200 text-red-800';
+      default:
+        return 'bg-gray-200 text-gray-800';
+    }
+  };
 
-  const isLiked = post.likes.some((like) => like.user === user.id);
+  if (!post || !user) return <div>로딩 중...</div>;
+
+  const evaluationStatus = getEvaluationStatus(post.reviewStatus);
 
   return (
     <div className="max-w-[600px] min-h-[100vh] mx-auto p-4 bg-white pb-16">
-      <Header isAuthenticated={isAuthenticated} />
+      <Header />
       <div className="mt-8">
-        <Link to="/feedback" className="font-GmarketMedium text-[#2EC4B6] mb-4 block">
+        <Link to="/evaluation" className="font-GmarketMedium text-[#2EC4B6] mb-4 block">
           &lt; 돌아가기
         </Link>
-        <h1 className="mb-4 text-2xl font-GmarketBold">{post.title}</h1>
+        <div className="flex items-center mb-4">
+          <h1 className="text-2xl font-GmarketBold">{post.title}</h1>
+          <span className={`ml-2 px-1 py-1 text-[10px] font-GmarketMedium rounded ${getStatusColor(evaluationStatus)}`}>
+            {evaluationStatus}
+          </span>
+        </div>
         <div className="flex items-center justify-between mb-4">
           <span className="text-sm font-GmarketMedium text-[#2EC4B6]">심사</span>
           <div>
-            <span className="mr-2 text-sm font-GmarketLight">{post.user.username}</span>
+            <span className="mr-2 text-sm font-GmarketLight">{post.username}</span>
             <span className="text-sm font-GmarketLight">{new Date(post.createdDate).toLocaleDateString()}</span>
           </div>
         </div>
@@ -101,20 +124,6 @@ const EvaluationDetail = () => {
         )}
         <p className="mb-8 text-base font-GmarketLight">{post.content}</p>
 
-        {/* 좋아요 버튼 */}
-        <div className="flex justify-end mb-4">
-          <button
-            onClick={handleLike}
-            className={`flex items-center px-4 py-2 rounded-full ${
-              isLiked ? 'bg-[#FF6B6B] text-white' : 'bg-gray-200 text-gray-800'
-            } transition duration-200`}
-          >
-            <span className="mr-2">{isLiked ? '❤️' : '🤍'}</span>
-            <span>{post.likes.length}</span>
-          </button>
-        </div>
-
-        {/* 투표 버튼 */}
         <div className="flex justify-center mb-8 space-x-4">
           <button
             onClick={() => handleVote('agree')}
@@ -122,7 +131,7 @@ const EvaluationDetail = () => {
               userVote === 'agree' ? 'bg-[#2EC4B6] text-white' : 'bg-gray-200 text-gray-800'
             } font-GmarketMedium transition duration-200`}
           >
-            찬성 ({post.vote.agreeNum})
+            찬성
           </button>
           <button
             onClick={() => handleVote('disagree')}
@@ -130,10 +139,23 @@ const EvaluationDetail = () => {
               userVote === 'disagree' ? 'bg-[#FF6B6B] text-white' : 'bg-gray-200 text-gray-800'
             } font-GmarketMedium transition duration-200`}
           >
-            반대 ({post.vote.disagreeNum})
+            반대
           </button>
         </div>
       </div>
+      {showLoginMessage && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="flex flex-col items-center justify-center p-8 bg-white rounded-lg shadow-lg">
+            <h2 className="mb-4 text-sm font-GmarketBold text-[#FF6B6B]">로그인이 필요한 서비스입니다.</h2>
+            <button
+              className="px-3 py-2 text-[#2EC4B6] border border-[#2EC4B6] rounded hover:text-white hover:bg-[#2EC4B6] active:text-[#2EC4B6] active:bg-white transition-colors duration-200 rounded-lg font-GmarketMedium text-xs"
+              onClick={() => setShowLoginMessage(false)}
+            >
+              확인
+            </button>
+          </div>
+        </div>
+      )}
       <AppBar />
     </div>
   );
