@@ -100,6 +100,8 @@ const Home = () => {
   const handleCategoryClick = (path) => {
     if (path === '/routine' || path === '/nutrition') {
       navigate(`/routine-nutrition${path}`);
+    } else if (path === '/evaluation') {
+      navigate('/evaluation');
     } else {
       const category = path.slice(1);
       navigate(`/feedback/category/${category}`);
@@ -211,7 +213,7 @@ const Home = () => {
                     className="w-16 h-16 mb-2 rounded-full sm:w-20 sm:h-20 md:w-24 md:h-24"
                   />
                   <h3 className="text-xs sm:text-sm font-GmarketMedium">{experts[0].username}</h3>
-                  <p className="text-xs text-gray-600 sm:text-sm">@{experts[0].snsUrl}</p>
+                  <p className="text-xs text-gray-600 sm:text-sm">{experts[0].snsUrl}</p>
                 </div>
               </div>
             </div>

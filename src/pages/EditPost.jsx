@@ -4,7 +4,7 @@ import axios from 'axios';
 import Header from '../components/Header';
 import AppBar from '../components/AppBar';
 
-const EditPostPage = () => {
+const EditPost = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const [title, setTitle] = useState('');
@@ -20,7 +20,7 @@ const EditPostPage = () => {
   const [newMedia, setNewMedia] = useState([]);
 
   useEffect(() => {
-    console.log('Received id:', id); // 이 줄을 추가하여 id 값을 확인합니다.
+    console.log('Received id:', id);
     const token = localStorage.getItem('accessToken');
     if (!token) {
       navigate('/login', { state: { from: `/edit-post/${id}` } });
@@ -232,4 +232,4 @@ const EditPostPage = () => {
   );
 };
 
-export default EditPostPage;
+export default EditPost;

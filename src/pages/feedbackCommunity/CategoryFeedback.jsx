@@ -12,7 +12,6 @@ const CategoryFeedback = () => {
   const { accessToken } = useAuth();
   const navigate = useNavigate();
 
-  // 카테고리 매핑
   const categoryMapping = {
     abs: '복근',
     arm: '팔',

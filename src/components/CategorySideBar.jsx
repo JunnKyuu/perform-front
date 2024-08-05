@@ -8,7 +8,6 @@ const feedbackCategories = [
   { ko: '팔', en: 'arm' },
   { ko: '하체', en: 'leg' },
   { ko: '복근', en: 'abs' },
-  { ko: '심사', en: 'evaluation' },
 ];
 
 const routineNutritionCategories = [
@@ -52,6 +51,9 @@ const CategorySidebar = ({ isOpen, onClose }) => {
             </li>
           ))}
         </ul>
+        <Link to="/evaluation" className="block mb-3" onClick={onClose}>
+          <h3 className="text-sm font-GmarketMedium hover:text-[#2EC4B6]">심사</h3>
+        </Link>
         <Link to="/routine-nutrition" className="block mb-3" onClick={onClose}>
           <h3 className="text-sm font-GmarketMedium hover:text-[#2EC4B6]">루틴/영양</h3>
         </Link>

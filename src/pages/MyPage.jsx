@@ -20,6 +20,7 @@ const MyPage = () => {
   const navigate = useNavigate();
   const [isEditProfileModalOpen, setIsEditProfileModalOpen] = useState(false);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [reviewPosts, setReviewPosts] = useState([]);
 
   const fetchUserInfo = async () => {
     try {
@@ -44,14 +45,22 @@ const MyPage = () => {
 
   const fetchMyPosts = async () => {
     try {
-      const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/post/my`, {
-        headers: {
-          Authorization: `${localStorage.getItem('accessToken')}`,
-        },
-      });
-      setPosts(response.data);
+      const [postsResponse, reviewPostsResponse] = await Promise.all([
+        axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/post/my`, {
+          headers: {
+            Authorization: `${localStorage.getItem('accessToken')}`,
+          },
+        }),
+        axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/reviewpost/my`, {
+          headers: {
+            Authorization: `${localStorage.getItem('accessToken')}`,
+          },
+        }),
+      ]);
+      setPosts(postsResponse.data);
+      setReviewPosts(reviewPostsResponse.data);
     } catch (error) {
-      console.error('내 게시글을 가져오는 데 실패했습니다:', error);
+      console.error('게시글을 가져오는 데 실패했습니다:', error);
     }
   };
 
@@ -149,6 +158,29 @@ const MyPage = () => {
     });
   };
 
+  const handleEditReviewPost = (postId) => {
+    navigate(`/edit-evaluation-post/${postId}`);
+  };
+
+  const handleDeleteReviewPost = async (postId) => {
+    if (window.confirm('정말로 이 심사 게시글을 삭제하시겠습니까?')) {
+      try {
+        await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/api/reviewpost/${postId}`, {
+          headers: {
+            Authorization: `${localStorage.getItem('accessToken')}`,
+          },
+        });
+        setRefreshTrigger((prev) => prev + 1);
+      } catch (error) {
+        console.error('심사 게시글 삭제 중 오류가 발생했습니다:', error);
+      }
+    }
+  };
+
+  const handleReviewPostClick = (post) => {
+    navigate(`/evaluation/${post.id}`);
+  };
+
   return (
     <div className="max-w-[600px] min-h-screen mx-auto bg-white">
       <Header isAuthenticated={true} />
@@ -224,6 +256,48 @@ const MyPage = () => {
             </ul>
           ) : (
             <p className="text-gray-600">작성한 게시글이 없습니다.</p>
+          )}
+        </div>
+
+        <div className="mb-6">
+          <h2 className="mb-2 text-md font-GmarketBold text-[#2EC4B6]">내 심사 게시글</h2>
+          {reviewPosts.length > 0 ? (
+            <ul className="space-y-2">
+              {reviewPosts.map((post) => {
+                return (
+                  <li key={post.id} className="pb-2 border-b">
+                    <div className="flex items-center justify-between">
+                      <div
+                        onClick={() => handleReviewPostClick(post)}
+                        className="flex-grow block p-2 rounded cursor-pointer hover:bg-gray-100"
+                      >
+                        <div className="flex justify-between text-xs text-gray-600 font-GmarketLight mb-[5px]">
+                          <span className="text-[#2EC4B6] font-GmarketMedium">심사</span>
+                          <span>{new Date(post.createdDate).toLocaleDateString()}</span>
+                        </div>
+                        <h3 className="text-sm font-GmarketLight">{post.title}</h3>
+                      </div>
+                      <div className="w-[16%] flex items-center justify-between ml-5">
+                        <button
+                          onClick={() => handleEditReviewPost(post.id)}
+                          className="px-2 py-1 text-xs text-[#2EC4B6] border border-[#2EC4B6] rounded hover:bg-[#2EC4B6] hover:text-white active:bg-white active:text-[#2EC4B6] transition-colors duration-200 font-GmarketMedium"
+                        >
+                          수정
+                        </button>
+                        <button
+                          onClick={() => handleDeleteReviewPost(post.id)}
+                          className="px-2 py-1 text-xs text-[#FF6B6B] border border-[#FF6B6B] rounded hover:bg-[#FF6B6B] hover:text-white active:bg-white active:text-[#FF6B6B] transition-colors duration-200 font-GmarketMedium"
+                        >
+                          삭제
+                        </button>
+                      </div>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          ) : (
+            <p className="text-gray-600">작성한 심사 게시글이 없습니다.</p>
           )}
         </div>
       </div>
