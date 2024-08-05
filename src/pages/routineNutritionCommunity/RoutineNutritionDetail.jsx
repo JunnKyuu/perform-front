@@ -1,23 +1,25 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import Slider from 'react-slick';
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
 import Header from '../../components/Header';
 import AppBar from '../../components/AppBar';
 import { useAuth } from '../../context/AuthContext';
+import axios from 'axios';
 
 const RoutineNutritionDetail = () => {
-  const { category, postId } = useParams();
+  const navigate = useNavigate();
+  const { postId } = useParams();
+  const location = useLocation();
   const [post, setPost] = useState(null);
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState('');
+  const { accessToken, user } = useAuth();
   const [likes, setLikes] = useState(0);
   const [isLiked, setIsLiked] = useState(false);
-  const [likedComments, setLikedComments] = useState({});
-  const { state } = useAuth();
-  const { isAuthenticated, user } = state;
-  const [images, setImages] = useState([]);
+  const [showLoginMessage, setShowLoginMessage] = useState(false);
+  const [error, setError] = useState(null);
 
   const getCategoryInKorean = (category) => {
     const categoryMap = {
@@ -28,101 +30,156 @@ const RoutineNutritionDetail = () => {
   };
 
   useEffect(() => {
-    // 실제 데이터 가져오기
-    const fetchPost = async () => {
-      const samplePost = {
-        postId: postId,
-        category: category,
-        title: '초보자를 위한 전신 운동 루틴',
-        user: '헬스마스터',
-        userId: 1,
-        date: '2024-07-24',
-        content:
-          '처음 운동을 시작하는 분들을 위한 전신 운동 루틴을 공유합니다. 일주일에 3번, 각 운동은 3세트씩 진행하세요.',
-        images: [
-          'https://cdn.eyesmag.com/content/uploads/sliderImages/2024/07/05/KakaoTalk_20240705_152931486_07-5f31a62b-2969-433a-97a3-d1c59f6f8a93.jpg',
-          'https://cdn.eyesmag.com/content/uploads/sliderImages/2024/07/05/KakaoTalk_20240705_152931486_07-5f31a62b-2969-433a-97a3-d1c59f6f8a93.jpg',
-          'https://cdn.eyesmag.com/content/uploads/sliderImages/2024/07/05/KakaoTalk_20240705_152931486_07-5f31a62b-2969-433a-97a3-d1c59f6f8a93.jpg',
-        ],
-        likes: 10,
-      };
-      setPost(samplePost);
-      setLikes(samplePost.likes);
-      setImages(samplePost.images);
+    const fetchPostData = async () => {
+      if (location.state && location.state.postData) {
+        const data = location.state.postData;
+        setPost(data);
+        setLikes(data.likes);
 
-      const sampleComments = [
-        {
-          commentId: 1,
-          postId: postId,
-          userId: 2,
-          user: '운동초보',
-          content: '정말 도움이 됩니다. 감사합니다!',
-          likes: 3,
-          date: '2024-07-25',
-          master: false,
-        },
-        {
-          commentId: 2,
-          postId: postId,
-          userId: 3,
-          user: '헬스매니아',
-          content: '좋은 루틴이네요. 저도 시도해 봐야겠어요.',
-          likes: 5,
-          date: '2024-07-26',
-          master: true,
-        },
-      ];
-      setComments(sampleComments);
+        try {
+          const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/likes/post/${data.postId}`, {
+            headers: { Authorization: `${accessToken}` },
+          });
+          setIsLiked(response.data.length > 0);
+        } catch (error) {
+          console.error('좋아요 상태를 가져오는 중 오류 발생:', error);
+        }
+
+        fetchComments(data.postId);
+      } else {
+        setError('게시물 데이터를 찾을 수 없습니다.');
+      }
     };
 
-    fetchPost();
-  }, [category, postId]);
+    fetchPostData();
+  }, [location.state, accessToken]);
 
-  const handleCommentSubmit = (e) => {
-    e.preventDefault();
-    submitComment();
+  const fetchComments = async (postId) => {
+    try {
+      const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/comment/${postId}`, {
+        headers: { Authorization: `${accessToken}` },
+      });
+
+      const commentsWithLikeStatus = await Promise.all(
+        response.data.map(async (comment) => {
+          const likeResponse = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/likes/comment/${comment.id}`, {
+            headers: { Authorization: `${accessToken}` },
+          });
+          return {
+            ...comment,
+            liked: likeResponse.data.length > 0,
+            likesNum: likeResponse.data.length,
+          };
+        })
+      );
+
+      setComments(commentsWithLikeStatus);
+    } catch (error) {
+      console.error('댓글을 불러오는 중 오류 발생:', error);
+    }
   };
 
-  const submitComment = () => {
+  const handleCommentSubmit = async (e) => {
+    e.preventDefault();
+    if (!accessToken) {
+      setShowLoginMessage(true);
+    } else {
+      await submitComment();
+    }
+  };
+
+  const submitComment = async () => {
     if (newComment.trim() === '') return;
 
-    const newCommentObj = {
-      commentId: comments.length + 1,
-      postId: postId,
-      userId: user?.id ? parseInt(user.id, 10) : 0,
-      user: user?.name || '익명',
-      content: newComment,
-      likes: 0,
-      date: new Date().toISOString().split('T')[0],
-      master: user?.master || false,
-    };
+    try {
+      const response = await axios.post(
+        `${import.meta.env.VITE_API_BASE_URL}/api/comment/${post.postId}`,
+        {
+          content: newComment,
+        },
+        {
+          headers: { Authorization: `${accessToken}` },
+        }
+      );
 
-    setComments([...comments, newCommentObj]);
-    setNewComment('');
+      setComments([...comments, response.data]);
+      setNewComment('');
+    } catch (error) {
+      console.error('댓글 작성 중 오류 발생:', error);
+    }
   };
 
-  const handleLike = () => {
-    setIsLiked(!isLiked);
-    setLikes((prevLikes) => (isLiked ? prevLikes - 1 : prevLikes + 1));
-    // 여기에 서버로 좋아요 상태를 업데이트하는 로직을 추가
+  const handleLike = async (commentId) => {
+    if (!accessToken) {
+      setShowLoginMessage(true);
+    } else {
+      try {
+        const comment = comments.find((c) => c.id === commentId);
+        if (comment.liked) {
+          await axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/likes/${commentId}`, {
+            headers: { Authorization: `${accessToken}` },
+          });
+        } else {
+          await axios.post(
+            `${import.meta.env.VITE_API_BASE_URL}/api/likes/comment/${commentId}`,
+            {},
+            {
+              headers: { Authorization: `${accessToken}` },
+            }
+          );
+        }
+
+        setComments(
+          comments.map((comment) => {
+            if (comment.id === commentId) {
+              return {
+                ...comment,
+                liked: !comment.liked,
+                likesNum: comment.liked ? comment.likesNum - 1 : comment.likesNum + 1,
+              };
+            }
+            return comment;
+          })
+        );
+      } catch (error) {
+        console.error('댓글 좋아요 처리 중 오류 발생:', error);
+      }
+    }
   };
 
-  const handleCommentLike = (commentId) => {
-    setComments(
-      comments.map((comment) =>
-        comment.commentId === commentId
-          ? { ...comment, likes: likedComments[commentId] ? comment.likes - 1 : comment.likes + 1 }
-          : comment
-      )
-    );
-    setLikedComments((prev) => ({
-      ...prev,
-      [commentId]: !prev[commentId],
-    }));
-    // 여기에 서버로 댓글 좋아요 상태를 업데이트하는 로직을 추가
+  const handlePostLike = async () => {
+    if (!accessToken) {
+      setShowLoginMessage(true);
+    } else {
+      try {
+        if (isLiked) {
+          // 좋아요 취소
+          await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/api/likes/post/${post.postId}`, {
+            headers: { Authorization: `${accessToken}` },
+          });
+        } else {
+          // 좋아요 추가
+          await axios.post(
+            `${import.meta.env.VITE_API_BASE_URL}/api/likes/post/${post.postId}`,
+            {},
+            {
+              headers: { Authorization: `${accessToken}` },
+            }
+          );
+        }
+
+        setIsLiked(!isLiked);
+        setLikes((prevLikes) => (isLiked ? prevLikes - 1 : prevLikes + 1));
+      } catch (error) {
+        console.error('좋아요 처리 중 오류 발생:', error);
+      }
+    }
   };
 
-  // 슬라이더 설정
+  const handleGoBack = () => {
+    navigate(-1);
+  };
+
   const settings = {
     dots: true,
     infinite: true,
@@ -132,40 +189,46 @@ const RoutineNutritionDetail = () => {
     arrows: false,
   };
 
+  if (error) return <div>오류 발생: {error}</div>;
   if (!post) return <div>로딩 중...</div>;
 
   return (
     <div className="max-w-[600px] min-h-[100vh] mx-auto p-4 bg-white pb-16">
-      <Header isAuthenticated={isAuthenticated} />
+      <Header />
       <div className="mt-8">
-        <Link to="/routine-nutrition" className="text-[#2EC4B6] mb-4 block font-GmarketMedium">
+        <button onClick={handleGoBack} className="text-[#2EC4B6] mb-4 block font-GmarketMedium">
           &lt; 돌아가기
-        </Link>
-        <h1 className="mb-4 text-2xl font-GmarketBold">{post.title}</h1>
+        </button>
         <div className="flex items-center justify-between mb-4">
-          <span className="text-sm font-GmarketMedium text-[#2EC4B6]">{getCategoryInKorean(post.category)}</span>
+          <h1 className="text-2xl font-GmarketBold">{post?.title}</h1>
+        </div>
+        <div className="flex items-center justify-between mb-4">
+          <span className="text-sm font-GmarketMedium text-[#2EC4B6]">{getCategoryInKorean(post?.category)}</span>
           <div>
-            <span className="mr-2 text-sm font-GmarketLight">{post.user}</span>
-            <span className="text-sm font-GmarketLight">{post.date}</span>
+            <span className="mr-2 text-sm font-GmarketLight">{post?.user}</span>
+            <span className="text-sm font-GmarketLight">{post?.date}</span>
           </div>
         </div>
-        {images.length > 0 && (
+        {post?.attachments && post.attachments.length > 0 && (
           <div className="mb-10">
-            <Slider {...settings}>
-              {images.map((image, index) => (
-                <div key={index}>
-                  <img src={image} alt={`게시물 이미지 ${index + 1}`} className="w-full rounded-lg" />
-                </div>
-              ))}
-            </Slider>
+            {post.attachments.length === 1 ? (
+              <img src={post.attachments[0].filePath} alt="게시물 이미지" className="w-full rounded-lg" />
+            ) : (
+              <Slider {...settings}>
+                {post.attachments.map((attachment, index) => (
+                  <div key={index}>
+                    <img src={attachment.filePath} alt={`게시물 이미지 ${index + 1}`} className="w-full rounded-lg" />
+                  </div>
+                ))}
+              </Slider>
+            )}
           </div>
         )}
-        <p className="mb-8 text-base font-GmarketLight">{post.content}</p>
+        <p className="mb-8 text-base font-GmarketLight">{post?.content}</p>
 
-        {/* 좋아요 버튼 */}
         <div className="flex justify-end mb-4">
           <button
-            onClick={handleLike}
+            onClick={handlePostLike}
             className={`flex items-center px-4 py-2 rounded-full ${
               isLiked ? 'bg-[#FF6B6B] text-white' : 'bg-gray-200 text-gray-800'
             } transition duration-200`}
@@ -175,56 +238,82 @@ const RoutineNutritionDetail = () => {
           </button>
         </div>
 
-        {/* 댓글 */}
         <div className="mt-8">
           <h2 className="mb-4 text-md font-GmarketBold">댓글</h2>
-          {comments.map((comment) => (
-            <div key={comment.commentId} className="p-3 mb-4 bg-gray-100 rounded-lg">
-              <div className="flex items-center justify-between mb-2">
-                <div className="flex items-center">
-                  <span className="text-sm font-GmarketMedium">{comment.user}</span>
-                  {comment.master && (
-                    <span className="ml-2 px-1 py-1 text-[10px] font-GmarketMedium bg-[#2EC4B6] text-white rounded-full">
-                      고수
+          {accessToken ? (
+            <>
+              {comments.map((comment) => (
+                <div key={comment.id} className="px-3 py-2 mb-4 bg-gray-100 rounded-lg">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center">
+                      <span className="text-sm font-GmarketMedium">{comment.username}</span>
+                      {comment.expert && (
+                        <span className="ml-2 px-1 py-1 text-[10px] font-GmarketMedium bg-[#2EC4B6] text-white rounded-full">
+                          고수
+                        </span>
+                      )}
+                    </div>
+                    <span className="text-xs text-gray-500 font-GmarketLight">
+                      {new Date(comment.date).toLocaleDateString()}
                     </span>
-                  )}
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <p className="mb-2 text-xs font-GmarketLight">{comment.content}</p>
+                    <div className="flex items-center">
+                      <button
+                        onClick={() => handleLike(comment.id)}
+                        className={`text-md mr-2 ${comment.liked ? 'text-red-500' : 'text-gray-500'}`}
+                      >
+                        {comment.liked ? '❤️' : '🤍'}
+                      </button>
+                      <span className="text-xs text-gray-500">{comment.likesNum}</span>
+                    </div>
+                  </div>
                 </div>
-                <span className="text-xs text-gray-500 font-GmarketLight">{comment.date}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <p className="mb-2 text-xs font-GmarketLight">{comment.content}</p>
-                <div className="flex items-center">
+              ))}
+
+              <form onSubmit={handleCommentSubmit} className="mt-4">
+                <textarea
+                  value={newComment}
+                  onChange={(e) => setNewComment(e.target.value)}
+                  className="font-GmarketLight text-sm w-full p-2 border rounded-lg resize-none focus:outline-none focus:ring-1 focus:ring-[#2EC4B6] focus:border-[#2EC4B6] transition duration-200"
+                  rows="3"
+                  placeholder="댓글을 작성해주세요..."
+                  disabled={!accessToken}
+                ></textarea>
+                <div className="flex items-center justify-end">
                   <button
-                    onClick={() => handleCommentLike(comment.commentId)}
-                    className={`text-md mr-2 ${likedComments[comment.commentId] ? 'text-red-500' : 'text-gray-500'}`}
+                    type="submit"
+                    className={`mt-2 px-4 py-2 ${
+                      accessToken ? 'bg-[#2EC4B6] text-white' : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                    } rounded-lg transition duration-200 ease-in-out font-GmarketMedium`}
+                    disabled={!accessToken}
                   >
-                    {likedComments[comment.commentId] ? '❤️' : '🤍'}
+                    댓글 작성
                   </button>
                 </div>
-              </div>
+              </form>
+            </>
+          ) : (
+            <div className="p-4 text-center bg-gray-100 rounded-lg">
+              <p className="text-sm text-gray-600 font-GmarketMedium">로그인이 필요한 기능입니다.</p>
             </div>
-          ))}
-
-          {/* 새 댓글 폼 */}
-          <form onSubmit={handleCommentSubmit} className="mt-4">
-            <textarea
-              value={newComment}
-              onChange={(e) => setNewComment(e.target.value)}
-              className="font-GmarketLight text-sm w-full p-2 border rounded-lg resize-none focus:outline-none focus:ring-1 focus:ring-[#2EC4B6] focus:border-[#2EC4B6] transition duration-200 ease-in-out"
-              rows="3"
-              placeholder="댓글을 작성해주세요..."
-            ></textarea>
-            <div className="flex items-center justify-end">
-              <button
-                type="submit"
-                className="font-GmarketMedium mt-2 px-4 py-2 bg-[#2EC4B6] text-white rounded-lg hover:bg-[#25a093] transition duration-200 ease-in-out"
-              >
-                댓글 작성
-              </button>
-            </div>
-          </form>
+          )}
         </div>
       </div>
+      {showLoginMessage && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="flex flex-col items-center justify-center p-8 bg-white rounded-lg shadow-lg">
+            <h2 className="mb-4 text-sm font-GmarketBold text-[#FF6B6B]">로그인이 필요한 서비스입니다.</h2>
+            <button
+              className="px-3 py-2 text-[#2EC4B6] border border-[#2EC4B6] rounded hover:text-white hover:bg-[#2EC4B6] active:text-[#2EC4B6] active:bg-white transition-colors duration-200 rounded-lg font-GmarketMedium text-xs"
+              onClick={() => setShowLoginMessage(false)}
+            >
+              확인
+            </button>
+          </div>
+        </div>
+      )}
       <AppBar />
     </div>
   );

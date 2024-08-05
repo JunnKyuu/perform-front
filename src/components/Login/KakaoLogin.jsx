@@ -1,10 +1,8 @@
-// 카카오 서버로 인증 코드 요청해서 받음
 const KakaoLogin = () => {
   const REST_API_KEY = import.meta.env.VITE_KAKAO_REST_API_KEY;
-  const REDIRECT_URI = 'http://www.localhost:5173/auth/kakao/callback';
+  const REDIRECT_URI = import.meta.env.VITE_PERFORM_REDIRECT_URI;
   const KAKAO_AUTH_URL = `https://kauth.kakao.com/oauth/authorize?response_type=code&client_id=${REST_API_KEY}&redirect_uri=${REDIRECT_URI}`;
 
-  // 카카오 인증 페이지로 리디렉션
   const clickToKakao = () => {
     window.location.replace(`${KAKAO_AUTH_URL}`);
   };

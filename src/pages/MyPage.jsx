@@ -4,68 +4,61 @@ import Header from '../components/Header';
 import AppBar from '../components/AppBar';
 import EditProfileModal from '../components/EditProfileModal';
 import defaultImage from '../assets/images/default.png';
+import axios from 'axios';
 
 const MyPage = () => {
   const [userInfo, setUserInfo] = useState({
-    userId: '',
-    name: '사용자 이름',
-    master: false,
-    profileImage: null,
+    id: '',
+    username: '사용자 이름',
+    profile: null,
     email: 'user@example.com',
-    sns: '@user_sns',
+    snsUrl: 'snsUrl을 설정해주세요',
+    expert: false,
   });
 
   const [posts, setPosts] = useState([]);
   const navigate = useNavigate();
   const [isEditProfileModalOpen, setIsEditProfileModalOpen] = useState(false);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+
+  const fetchUserInfo = async () => {
+    try {
+      const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/users/my`, {
+        headers: {
+          Authorization: `${localStorage.getItem('accessToken')}`,
+        },
+      });
+
+      setUserInfo({
+        id: response.data.id,
+        username: response.data.username,
+        profile: response.data.profile,
+        email: response.data.email,
+        snsUrl: response.data.snsUrl || '@sns_url',
+        expert: response.data.expert,
+      });
+    } catch (error) {
+      console.error('사용자 정보를 가져오는 데 실패했습니다:', error);
+    }
+  };
+
+  const fetchMyPosts = async () => {
+    try {
+      const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/post/my`, {
+        headers: {
+          Authorization: `${localStorage.getItem('accessToken')}`,
+        },
+      });
+      setPosts(response.data);
+    } catch (error) {
+      console.error('내 게시글을 가져오는 데 실패했습니다:', error);
+    }
+  };
 
   useEffect(() => {
-    setUserInfo({
-      userId: 123,
-      name: '헬스왕',
-      master: true,
-      profileImage:
-        'https://cdn.eyesmag.com/content/uploads/sliderImages/2024/07/05/KakaoTalk_20240705_152931486_07-5f31a62b-2969-433a-97a3-d1c59f6f8a93.jpg',
-      email: 'health_king@example.com',
-      sns: '@health_king',
-    });
-
-    setPosts([
-      {
-        postId: 1,
-        userId: 123,
-        category: '루틴',
-        title: '오늘의 운동 루틴',
-        content: '오늘의 운동 루틴 내용...',
-        user: '헬스왕',
-        date: '2024-07-28',
-        image: 'https://example.com/image1.jpg',
-        likes: 10,
-      },
-      {
-        postId: 2,
-        userId: 123,
-        category: '심사',
-        title: '벤치프레스 자세 피드백 부탁드려요',
-        content: '벤치프레스 자세 내용...',
-        user: '헬스왕',
-        date: '2024-07-29',
-        image: 'https://example.com/image2.jpg',
-        likes: 5,
-      },
-      {
-        postId: 3,
-        userId: 123,
-        category: '영양',
-        title: '단백질 보충제 추천',
-        content: '단백질 보충제 추천 내용...',
-        user: '헬스왕',
-        date: '2024-07-31',
-        image: 'https://example.com/image3.jpg',
-        likes: 15,
-      },
-    ]);
-  }, []);
+    fetchUserInfo();
+    fetchMyPosts();
+  }, [refreshTrigger]);
 
   const getCategoryInEnglish = (category) => {
     const categoryMap = {
@@ -88,7 +81,16 @@ const MyPage = () => {
 
   const handleDelete = async (postId) => {
     if (window.confirm('정말로 이 게시글을 삭제하시겠습니까?')) {
-      setPosts(posts.filter((post) => post.postId !== postId));
+      try {
+        await axios.delete(`${import.meta.env.VITE_API_BASE_URL}/api/post/${postId}`, {
+          headers: {
+            Authorization: `${localStorage.getItem('accessToken')}`,
+          },
+        });
+        setRefreshTrigger((prev) => prev + 1);
+      } catch (error) {
+        console.error('게시글 삭제 중 오류가 발생했습니다:', error);
+      }
     }
   };
 
@@ -105,16 +107,16 @@ const MyPage = () => {
         const imageUrl = URL.createObjectURL(imageFile);
         setUserInfo((prevInfo) => ({
           ...prevInfo,
-          name: updatedProfile.get('name'),
-          sns: updatedProfile.get('sns'),
-          profileImage: imageUrl,
+          username: updatedProfile.get('username'),
+          snsUrl: updatedProfile.get('snsUrl'),
+          profile: imageUrl,
         }));
       } else {
         // 이미지가 변경되지 않은 경우
         setUserInfo((prevInfo) => ({
           ...prevInfo,
-          name: updatedProfile.get('name'),
-          sns: updatedProfile.get('sns'),
+          username: updatedProfile.get('username'),
+          snsUrl: updatedProfile.get('snsUrl'),
         }));
       }
     } else {
@@ -125,6 +127,26 @@ const MyPage = () => {
       }));
     }
     setIsEditProfileModalOpen(false);
+    setRefreshTrigger((prev) => prev + 1);
+  };
+
+  const handlePostClick = (post) => {
+    navigate(`/feedback/${post.id}`, {
+      state: {
+        postData: {
+          postId: post.id,
+          category: post.category,
+          title: post.title,
+          user: post.username,
+          userId: post.userId,
+          content: post.content,
+          date: new Date(post.createdDate).toLocaleDateString(),
+          likes: post.likesNum,
+          attachments: post.attachments,
+          liked: post.liked,
+        },
+      },
+    });
   };
 
   return (
@@ -134,22 +156,22 @@ const MyPage = () => {
         <div className="flex items-center justify-between py-2 mb-6">
           <div className="flex items-center mb-8">
             <img
-              src={userInfo.profileImage || defaultImage}
+              src={userInfo.profile || defaultImage}
               alt="프로필 사진"
               className="object-cover w-24 h-24 mr-4 rounded-full"
             />
             <div>
               <div>
                 <h1 className="flex items-center mb-1 text-2xl font-GmarketBold">
-                  {userInfo.name}
-                  {userInfo.master && (
+                  {userInfo.username}
+                  {userInfo.expert && (
                     <span className="px-1 py-0.5 ml-2 text-xs text-white bg-[#2EC4B6] rounded-[10px] font-GmarketMedium">
                       고수
                     </span>
                   )}
                 </h1>
                 <p className="mb-1 text-sm text-gray-600 font-GmarketMedium">{userInfo.email}</p>
-                <p className="text-sm text-gray-600 font-GmarketMedium">{userInfo.sns}</p>
+                <p className="text-sm text-gray-600 font-GmarketMedium">{userInfo.snsUrl}</p>
               </div>
             </div>
           </div>
@@ -168,36 +190,28 @@ const MyPage = () => {
           {posts.length > 0 ? (
             <ul className="space-y-2">
               {posts.map((post) => {
-                const feedbackCategories = ['등', '가슴', '어깨', '팔', '하체', '복근', '심사'];
-                const routineNutritionCategories = ['루틴', '영양'];
-                const englishCategory = getCategoryInEnglish(post.category);
-                let linkPath;
-                if (feedbackCategories.includes(post.category)) {
-                  linkPath = `/feedback/${englishCategory}/${post.postId}`;
-                } else if (routineNutritionCategories.includes(post.category)) {
-                  linkPath = `/routine-nutrition/${englishCategory}/${post.postId}`;
-                } else {
-                  linkPath = `/post/${post.postId}`;
-                }
                 return (
-                  <li key={post.postId} className="pb-2 border-b">
+                  <li key={post.id} className="pb-2 border-b">
                     <div className="flex items-center justify-between">
-                      <Link to={linkPath} className="flex-grow block p-2 rounded hover:bg-gray-100">
+                      <div
+                        onClick={() => handlePostClick(post)}
+                        className="flex-grow block p-2 rounded cursor-pointer hover:bg-gray-100"
+                      >
                         <div className="flex justify-between text-xs text-gray-600 font-GmarketLight mb-[5px]">
                           <span className="text-[#2EC4B6] font-GmarketMedium">{post.category}</span>
-                          <span>{post.date}</span>
+                          <span>{new Date(post.createdDate).toLocaleDateString()}</span>
                         </div>
                         <h3 className="text-sm font-GmarketLight">{post.title}</h3>
-                      </Link>
+                      </div>
                       <div className="w-[16%] flex items-center justify-between ml-5">
                         <button
-                          onClick={() => handleEdit(post.postId)}
+                          onClick={() => handleEdit(post.id)}
                           className="px-2 py-1 text-xs text-[#2EC4B6] border border-[#2EC4B6] rounded hover:bg-[#2EC4B6] hover:text-white active:bg-white active:text-[#2EC4B6] transition-colors duration-200 font-GmarketMedium"
                         >
                           수정
                         </button>
                         <button
-                          onClick={() => handleDelete(post.postId)}
+                          onClick={() => handleDelete(post.id)}
                           className="px-2 py-1 text-xs text-[#FF6B6B] border border-[#FF6B6B] rounded hover:bg-[#FF6B6B] hover:text-white active:bg-white active:text-[#FF6B6B] transition-colors duration-200 font-GmarketMedium"
                         >
                           삭제
@@ -219,6 +233,8 @@ const MyPage = () => {
           userInfo={userInfo}
           onSave={handleSaveProfile}
           onClose={() => setIsEditProfileModalOpen(false)}
+          userId={userInfo.id}
+          accessToken={localStorage.getItem('accessToken')}
         />
       )}
     </div>

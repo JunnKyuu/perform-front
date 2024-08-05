@@ -3,78 +3,83 @@ import { useParams, Link } from 'react-router-dom';
 import Header from '../../components/Header';
 import AppBar from '../../components/AppBar';
 import { useAuth } from '../../context/AuthContext';
+import axios from 'axios';
 
 const EvaluationDetail = () => {
   const { postId } = useParams();
   const [post, setPost] = useState(null);
-  const [votes, setVotes] = useState({ agree: 0, disagree: 0 });
   const [userVote, setUserVote] = useState(null);
-  const [likes, setLikes] = useState(0);
-  const [isLiked, setIsLiked] = useState(false);
   const { state } = useAuth();
   const { isAuthenticated, user } = state;
 
   useEffect(() => {
-    // 실제 데이터 가져오기
     const fetchPost = async () => {
-      const samplePost = {
-        postId: postId,
-        category: 'evaluation',
-        title: '고수 신청합니다.',
-        user: '헬스고수',
-        userId: 123,
-        date: '2024-07-28',
-        content: '운동경력 5년차이고, 3대 700입니다. 자세 봐주시고 찬성 부탁드립니다!',
-        image:
-          'https://cdn.eyesmag.com/content/uploads/sliderImages/2024/07/05/KakaoTalk_20240705_152931486_07-5f31a62b-2969-433a-97a3-d1c59f6f8a93.jpg',
-        likes: 10,
-      };
-      setPost(samplePost);
-      setLikes(samplePost.likes);
-      setVotes({ agree: 15, disagree: 5 });
+      try {
+        const response = await axios.get(`base_url/api/reviewpost/${postId}`);
+        setPost(response.data);
+        // 사용자의 투표 여부 확인
+        const userVoteData = response.data.vote.userVotes.find((vote) => vote.user === user.id);
+        setUserVote(userVoteData ? (userVoteData.isAgree ? 'agree' : 'disagree') : null);
+      } catch (error) {
+        console.error('게시물 불러오기 실패:', error);
+      }
     };
 
     fetchPost();
-  }, [postId]);
+  }, [postId, user.id]);
 
-  const handleVote = (voteType) => {
+  const handleVote = async (voteType) => {
     if (!isAuthenticated) {
       alert('투표하려면 로그인이 필요합니다.');
       return;
     }
 
-    if (userVote === voteType) {
-      setUserVote(null);
-      setVotes((prev) => ({
-        ...prev,
-        [voteType]: prev[voteType] - 1,
+    try {
+      // 투표 API 호출 (실제 엔드포인트로 수정 필요)
+      await axios.post(`base_url/api/vote/${post.vote.id}`, {
+        isAgree: voteType === 'agree',
+      });
+
+      // 투표 상태 업데이트
+      setPost((prevPost) => ({
+        ...prevPost,
+        vote: {
+          ...prevPost.vote,
+          agreeNum: voteType === 'agree' ? prevPost.vote.agreeNum + 1 : prevPost.vote.agreeNum,
+          disagreeNum: voteType === 'disagree' ? prevPost.vote.disagreeNum + 1 : prevPost.vote.disagreeNum,
+        },
       }));
-    } else {
-      if (userVote) {
-        setVotes((prev) => ({
-          ...prev,
-          [userVote]: prev[userVote] - 1,
-        }));
-      }
       setUserVote(voteType);
-      setVotes((prev) => ({
-        ...prev,
-        [voteType]: prev[voteType] + 1,
-      }));
+    } catch (error) {
+      console.error('투표 실패:', error);
     }
-    // 여기에 서버로 투표 정보를 보내는 API 호출
   };
 
-  const handleLike = () => {
-    if (isLiked) {
-      setLikes(likes - 1);
-    } else {
-      setLikes(likes + 1);
+  const handleLike = async () => {
+    if (!isAuthenticated) {
+      alert('좋아요를 누르려면 로그인이 필요합니다.');
+      return;
     }
-    setIsLiked(!isLiked);
+
+    try {
+      // 좋아요 API 호출 (실제 엔드포인트로 수정 필요)
+      await axios.post(`base_url/api/like/${postId}`);
+
+      // 좋아요 상태 업데이트
+      setPost((prevPost) => ({
+        ...prevPost,
+        likes: prevPost.likes.some((like) => like.user === user.id)
+          ? prevPost.likes.filter((like) => like.user !== user.id)
+          : [...prevPost.likes, { user: user.id }],
+      }));
+    } catch (error) {
+      console.error('좋아요 실패:', error);
+    }
   };
 
   if (!post) return <div>로딩 중...</div>;
+
+  const isLiked = post.likes.some((like) => like.user === user.id);
 
   return (
     <div className="max-w-[600px] min-h-[100vh] mx-auto p-4 bg-white pb-16">
@@ -87,11 +92,13 @@ const EvaluationDetail = () => {
         <div className="flex items-center justify-between mb-4">
           <span className="text-sm font-GmarketMedium text-[#2EC4B6]">심사</span>
           <div>
-            <span className="mr-2 text-sm font-GmarketLight">{post.user}</span>
-            <span className="text-sm font-GmarketLight">{post.date}</span>
+            <span className="mr-2 text-sm font-GmarketLight">{post.user.username}</span>
+            <span className="text-sm font-GmarketLight">{new Date(post.createdDate).toLocaleDateString()}</span>
           </div>
         </div>
-        {post.image && <img src={post.image} alt="게시물 이미지" className="w-full mb-4 rounded-lg" />}
+        {post.attachments.length > 0 && (
+          <img src={post.attachments[0].path} alt="게시물 이미지" className="w-full mb-4 rounded-lg" />
+        )}
         <p className="mb-8 text-base font-GmarketLight">{post.content}</p>
 
         {/* 좋아요 버튼 */}
@@ -103,7 +110,7 @@ const EvaluationDetail = () => {
             } transition duration-200`}
           >
             <span className="mr-2">{isLiked ? '❤️' : '🤍'}</span>
-            <span>{likes}</span>
+            <span>{post.likes.length}</span>
           </button>
         </div>
 
@@ -115,7 +122,7 @@ const EvaluationDetail = () => {
               userVote === 'agree' ? 'bg-[#2EC4B6] text-white' : 'bg-gray-200 text-gray-800'
             } font-GmarketMedium transition duration-200`}
           >
-            찬성
+            찬성 ({post.vote.agreeNum})
           </button>
           <button
             onClick={() => handleVote('disagree')}
@@ -123,7 +130,7 @@ const EvaluationDetail = () => {
               userVote === 'disagree' ? 'bg-[#FF6B6B] text-white' : 'bg-gray-200 text-gray-800'
             } font-GmarketMedium transition duration-200`}
           >
-            반대
+            반대 ({post.vote.disagreeNum})
           </button>
         </div>
       </div>
