@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import Header from '../../components/Header';
 import AppBar from '../../components/AppBar';
@@ -9,8 +9,8 @@ const CategoryFeedback = () => {
   const { category } = useParams();
   const [allPosts, setAllPosts] = useState([]);
   const [sortBy, setSortBy] = useState('최신순');
-  const { state } = useAuth();
-  const { isAuthenticated } = state;
+  const { accessToken } = useAuth();
+  const navigate = useNavigate();
 
   // 카테고리 매핑
   const categoryMapping = {
@@ -29,16 +29,7 @@ const CategoryFeedback = () => {
 
   const fetchAllPosts = async () => {
     try {
-      const response = await axios.get('http://ec2-54-180-248-238.ap-northeast-2.compute.amazonaws.com:8080/api/post');
-      // const formattedPosts = response.data.map((post) => ({
-      //   postId: post.id,
-      //   category: post.category,
-      //   title: post.title,
-      //   user: post.username,
-      //   userId: post.userId,
-      //   date: new Date(post.createdDate).toLocaleDateString(),
-      //   likes: post.likesNum,
-      // }));
+      const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/post`);
       const formattedPosts = response.data.map((post) => ({
         postId: post.id,
         category: post.category,
@@ -70,18 +61,46 @@ const CategoryFeedback = () => {
 
   const sortedPosts = sortPosts(filteredPosts);
 
+  const handleWritePost = () => {
+    if (!accessToken) {
+      alert('로그인이 필요한 서비스입니다.');
+      navigate('/login');
+    } else {
+      // if (category === 'evaluation') {
+      //   navigate('/write-evaluation');
+      // } else {
+      //   navigate('/write-post');
+      // }
+      navigate('/write-post');
+    }
+  };
+
+  const handlePostClick = (post) => {
+    if (!accessToken) {
+      alert('로그인이 필요한 서비스입니다.');
+      navigate('/login');
+    } else {
+      // if (category === 'evaluation') {
+      //   navigate(`/feedback/evaluation/${post.postId}`, { state: { postData: post } });
+      // } else {
+      //   navigate(`/feedback/${post.postId}`, { state: { postData: post } });
+      // }
+      navigate(`/feedback/${post.postId}`, { state: { postData: post } });
+    }
+  };
+
   return (
     <div className="max-w-[600px] min-h-[100vh] mx-auto p-4 bg-white">
-      <Header isAuthenticated={isAuthenticated} />
+      <Header />
       <div className="mt-8">
         <div className="flex items-center justify-between mb-5">
           <h1 className="text-xl font-GmarketBold">{categoryMapping[category]} 게시글 목록</h1>
-          <Link
-            to="/write-post"
+          <button
+            onClick={handleWritePost}
             className="inline-block px-3 py-1 text-sm text-white bg-[#2EC4B6] rounded-lg font-GmarketMedium hover:bg-[#25A99D] active:bg-[#1F8C82]"
           >
             글쓰기
-          </Link>
+          </button>
         </div>
         <div className="flex gap-2 mb-10 font-GmarketMedium">
           {['최신순', '인기순'].map((sort) => (
@@ -98,21 +117,23 @@ const CategoryFeedback = () => {
         </div>
         <div className="grid gap-4">
           {sortedPosts.map((post) => (
-            <Link key={post.postId} to={`/feedback/${post.postId}`} state={{ postData: post }} className="block">
-              <div className="px-3 py-2 border rounded-lg shadow-sm border-[#DDDDDD] cursor-pointer transition-all duration-200 ease-in-out hover:shadow-md hover:border-[#2EC4B6] active:bg-gray-100">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center justify-center">
-                    <span className="text-sm font-GmarketMedium text-[#2EC4B6] w-8">{post.category}</span>
-                    <h3 className="flex ml-1 text-sm font-GmarketLight">{post.title}</h3>
-                  </div>
-                  <div className="flex items-center justify-center">
-                    <p className="mx-2 text-[10px] text-black font-GmarketLight">{post.user}</p>
-                    <p className="w-16 text-[10px] text-black font-GmarketLight">{post.date}</p>
-                    <p className="ml-2 text-[10px] text-red-500 font-GmarketLight">❤ {post.likes}</p>
-                  </div>
+            <div
+              key={post.postId}
+              onClick={() => handlePostClick(post)}
+              className="block px-3 py-2 border rounded-lg shadow-sm border-[#DDDDDD] cursor-pointer transition-all duration-200 ease-in-out hover:shadow-md hover:border-[#2EC4B6] active:bg-gray-100"
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center justify-center">
+                  <span className="text-sm font-GmarketMedium text-[#2EC4B6] w-8">{post.category}</span>
+                  <h3 className="flex ml-1 text-sm font-GmarketLight">{post.title}</h3>
+                </div>
+                <div className="flex items-center justify-center">
+                  <p className="mx-2 text-[10px] text-black font-GmarketLight">{post.user}</p>
+                  <p className="w-16 text-[10px] text-black font-GmarketLight">{post.date}</p>
+                  <p className="ml-2 text-[10px] text-red-500 font-GmarketLight">❤ {post.likes}</p>
                 </div>
               </div>
-            </Link>
+            </div>
           ))}
         </div>
       </div>

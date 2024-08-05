@@ -10,6 +10,7 @@ import FeedbackCommunity from './pages/feedbackCommunity/FeedbackCommunity';
 import FeedbackDetail from './pages/feedbackCommunity/FeedbackDetail';
 import CategoryFeedback from './pages/feedbackCommunity/CategoryFeedback';
 import EvaluationDetail from './pages/feedbackCommunity/EvaluationDetail';
+import WriteEvaluation from './pages/feedbackCommunity/WriteEvaluation';
 import WritePost from './pages/WritePost';
 import EditPostPage from './pages/\bEditPostPage';
 
@@ -33,8 +34,9 @@ const App = () => {
           <Route path="/feedback/evaluation/:postId" element={<EvaluationDetail />} />
           <Route path="/feedback/category/:category" element={<CategoryFeedback />} />
           <Route path="/write-post" element={<ProtectedRoute element={<WritePost />} />} />
+          <Route path="/write-evaluation" element={<ProtectedRoute element={<WriteEvaluation />} />} />
           <Route path="/my-page" element={<ProtectedRoute element={<MyPage />} />} />
-          <Route path="/edit-post/:postId" element={<ProtectedRoute element={<EditPostPage />} />} />
+          <Route path="/edit-post/:id" element={<ProtectedRoute element={<EditPostPage />} />} />
           <Route path="/routine-nutrition" element={<RoutineNutritionCommunity />} />
           <Route path="/routine-nutrition/:category/:postId" element={<RoutineNutritionDetail />} />
           <Route path="/routine-nutrition/:category" element={<CategoryRoutineNutrition />} />

@@ -11,6 +11,8 @@ import 'slick-carousel/slick/slick-theme.css';
 import SearchResults from '../components/SearchResults';
 import axios from 'axios';
 
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
 const categories = [
   { name: '등', path: '/back', icon: 'M4 7h4v10H4zM16 7h4v10h-4zM8 12h8' },
   { name: '가슴', path: '/chest', icon: 'M4 7h4v10H4zM16 7h4v10h-4zM8 12h8' },
@@ -31,51 +33,23 @@ const categories = [
   },
 ];
 
-const master = [
-  {
-    img: 'https://cdn.eyesmag.com/content/uploads/sliderImages/2024/07/05/KakaoTalk_20240705_152931486_07-5f31a62b-2969-433a-97a3-d1c59f6f8a93.jpg',
-    name: '신봉동고양이',
-    sns: 'ddoruruk_jun',
-  },
-  { img: null, name: '신봉동고양이', sns: 'ddoruruk_jun' },
-  { img: null, name: '신봉동고양이', sns: 'ddoruruk_jun' },
-  {
-    img: 'https://cdn.eyesmag.com/content/uploads/sliderImages/2024/07/05/KakaoTalk_20240705_152931486_07-5f31a62b-2969-433a-97a3-d1c59f6f8a93.jpg',
-    name: '신봉동고양이',
-    sns: 'ddoruruk_jun',
-  },
-  { img: null, name: '신봉동고양이', sns: 'ddoruruk_jun' },
-];
-
-const sliderSettings = {
-  dots: true,
-  infinite: true,
-  speed: 500,
-  slidesToShow: 3,
-  slidesToScroll: 1,
-  autoplay: true,
-  autoplaySpeed: 2000,
-  arrows: false,
-};
-
 const Home = () => {
-  const {
-    state: { isAuthenticated },
-  } = useAuth();
+  const { accessToken } = useAuth();
   const navigate = useNavigate();
   const [feedbackPosts, setFeedbackPosts] = useState([]);
   const [routineNutritionPosts, setRoutineNutritionPosts] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState([]);
-  const [showLoginMessage, setShowLoginMessage] = useState(false);
+  const [experts, setExperts] = useState([]);
 
   useEffect(() => {
     fetchPosts();
+    fetchExperts();
   }, []);
 
   const fetchPosts = async () => {
     try {
-      const response = await axios.get('http://ec2-54-180-248-238.ap-northeast-2.compute.amazonaws.com:8080/api/post');
+      const response = await axios.get(`${API_BASE_URL}/api/post`);
       const posts = response.data.map((post) => ({
         postId: post.id,
         category: post.category,
@@ -100,6 +74,16 @@ const Home = () => {
     }
   };
 
+  const fetchExperts = async () => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/api/users/experts`);
+      setExperts(Array.isArray(response.data) ? response.data : []);
+    } catch (error) {
+      console.error('전문가 목록을 가져오는 중 오류 발생:', error);
+      setExperts([]);
+    }
+  };
+
   const getCategoryPath = (category) => {
     const categoryMap = {
       복근: 'abs',
@@ -111,10 +95,6 @@ const Home = () => {
       어깨: 'shoulder',
     };
     return categoryMap[category] || category.toLowerCase();
-  };
-
-  const showLoginRequiredMessage = () => {
-    setShowLoginMessage(true);
   };
 
   const handleCategoryClick = (path) => {
@@ -202,25 +182,62 @@ const Home = () => {
     </div>
   );
 
+  const sliderSettings = {
+    dots: true,
+    infinite: true,
+    speed: 500,
+    slidesToShow: 3,
+    slidesToScroll: 1,
+    autoplay: true,
+    autoplaySpeed: 2000,
+    arrows: false,
+    swipeToSlide: true,
+    variableWidth: true,
+  };
+
   const renderMasterBanner = () => (
     <div className="px-5 py-3 mt-5">
       <h2 className="text-xl font-GmarketBold mb-4 text-[#2EC4B6]">고수 추천</h2>
       <div className="relative">
-        <Slider {...sliderSettings}>
-          {master.map((item, index) => (
-            <div key={index} className="px-2">
-              <div className="flex flex-col items-center p-4 bg-gray-100 rounded-lg">
-                <img
-                  src={item.img || defaultImage}
-                  alt={item.name}
-                  className="w-16 h-16 mb-2 rounded-full sm:w-20 sm:h-20 md:w-24 md:h-24"
-                />
-                <h3 className="text-xs sm:text-sm font-GmarketMedium">{item.name}</h3>
-                <p className="text-xs text-gray-600 sm:text-sm">@{item.sns}</p>
+        {experts.length > 0 ? (
+          experts.length === 1 ? (
+            // 고수가 1명일 때
+            <div className="flex justify-center">
+              <div className="px-2 w-full max-w-[200px]">
+                <div className="flex flex-col items-center p-4 bg-gray-100 rounded-lg">
+                  <img
+                    src={experts[0].profile || defaultImage}
+                    alt={experts[0].username}
+                    className="w-16 h-16 mb-2 rounded-full sm:w-20 sm:h-20 md:w-24 md:h-24"
+                  />
+                  <h3 className="text-xs sm:text-sm font-GmarketMedium">{experts[0].username}</h3>
+                  <p className="text-xs text-gray-600 sm:text-sm">@{experts[0].snsUrl}</p>
+                </div>
               </div>
             </div>
-          ))}
-        </Slider>
+          ) : (
+            // 고수가 2명 이상일 때
+            <Slider {...sliderSettings}>
+              {experts.map((expert) => (
+                <div key={expert.id} className="px-2" style={{ width: 200 }}>
+                  <div className="flex flex-col items-center p-4 bg-gray-100 rounded-lg">
+                    <img
+                      src={expert.profile || defaultImage}
+                      alt={expert.username}
+                      className="w-16 h-16 mb-2 rounded-full sm:w-20 sm:h-20 md:w-24 md:h-24"
+                    />
+                    <h3 className="text-xs sm:text-sm font-GmarketMedium">{expert.username}</h3>
+                    <p className="text-xs text-gray-600 sm:text-sm">@{expert.snsUrl}</p>
+                  </div>
+                </div>
+              ))}
+            </Slider>
+          )
+        ) : (
+          <p className="text-center text-[#FF6B6B] font-GmarketMedium text-sm">
+            고수 정보를 불러오는 중 오류가 발생했습니다.
+          </p>
+        )}
       </div>
     </div>
   );
@@ -291,7 +308,7 @@ const Home = () => {
 
   return (
     <div className="max-w-[600px] min-h-screen ml-auto mr-auto bg-white font-bold text-3xl pb-14">
-      <Header isAuthenticated={isAuthenticated} />
+      <Header />
       <div className="flex flex-col justify-center items-center p-[10px]">
         <h1 className="text-3xl font-GmarketBold mb-[10px] text-[#2EC4B6]">Per-form</h1>
         {renderSearchBar()}
@@ -311,22 +328,8 @@ const Home = () => {
           results={searchResults}
           navigate={navigate}
           getCategoryPath={getCategoryPath}
-          isAuthenticated={isAuthenticated}
           handlePostClick={handlePostClick}
         />
-      )}
-      {showLoginMessage && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="flex flex-col items-center justify-center p-8 bg-white rounded-lg shadow-lg">
-            <h2 className="mb-4 text-sm font-GmarketBold text-[#FF6B6B]">로그인이 필요한 서비스입니다.</h2>
-            <button
-              className="px-3 py-2 text-[#2EC4B6] border border-[#2EC4B6] rounded hover:text-white hover:bg-[#2EC4B6] active:text-[#2EC4B6] active:bg-white transition-colors duration-200 rounded-lg font-GmarketMedium text-xs "
-              onClick={() => setShowLoginMessage(false)}
-            >
-              확인
-            </button>
-          </div>
-        </div>
       )}
       <AppBar />
     </div>

@@ -6,12 +6,12 @@ import Header from '../../components/Header';
 import AppBar from '../../components/AppBar';
 
 const FeedbackCommunity = () => {
-  const { state } = useAuth();
-  const { isAuthenticated } = state;
+  const { accessToken } = useAuth();
   const [posts, setPosts] = useState([]);
   const location = useLocation();
   const [selectedCategory, setSelectedCategory] = useState('전체');
   const [sortBy, setSortBy] = useState('최신순');
+  const navigate = useNavigate();
 
   const categories = ['전체', '복근', '팔', '등', '가슴', '심사', '하체', '어깨'];
 
@@ -26,9 +26,7 @@ const FeedbackCommunity = () => {
   useEffect(() => {
     const fetchPosts = async () => {
       try {
-        const response = await axios.get(
-          'http://ec2-54-180-248-238.ap-northeast-2.compute.amazonaws.com:8080/api/post'
-        );
+        const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/post`);
         const formattedPosts = response.data.map((post) => ({
           postId: post.id,
           category: post.category,
@@ -64,9 +62,8 @@ const FeedbackCommunity = () => {
 
   const sortedPosts = sortPosts(filteredPosts);
 
-  const navigate = useNavigate();
-
   const handlePostClick = (post) => {
+    console.log('클릭한 게시물 데이터:', post);
     navigate(`/feedback/${post.postId}`, {
       state: {
         postData: {
@@ -85,18 +82,27 @@ const FeedbackCommunity = () => {
     });
   };
 
+  const handleWritePost = () => {
+    if (!accessToken) {
+      alert('로그인이 필요한 서비스입니다.');
+      navigate('/login');
+    } else {
+      navigate('/write-post');
+    }
+  };
+
   return (
     <div className="max-w-[600px] min-h-[100vh] mx-auto p-4 bg-white">
-      <Header isAuthenticated={isAuthenticated} />
+      <Header />
       <div className="mt-8">
         <div className="flex items-center justify-between mb-5">
           <h1 className="text-xl font-GmarketBold">피드백 게시글 목록</h1>
-          <Link
-            to="/write-post"
+          <button
+            onClick={handleWritePost}
             className="inline-block px-3 py-1 text-sm text-white bg-[#2EC4B6] rounded-lg font-GmarketMedium hover:bg-[#25A99D] active:bg-[#1F8C82]"
           >
             글쓰기
-          </Link>
+          </button>
         </div>
         <div className="flex flex-wrap gap-2 mb-4 font-GmarketMedium">
           {categories.map((category) => (

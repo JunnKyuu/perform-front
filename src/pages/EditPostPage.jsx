@@ -3,7 +3,6 @@ import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Header from '../components/Header';
 import AppBar from '../components/AppBar';
-import { useAuth } from '../context/AuthContext';
 
 const EditPostPage = () => {
   const { id } = useParams();
@@ -16,48 +15,52 @@ const EditPostPage = () => {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const fileInputRef = useRef(null);
-  const {
-    state: { isAuthenticated },
-  } = useAuth();
+  const [accessToken, setAccessToken] = useState('');
+  const [existingMedia, setExistingMedia] = useState([]);
+  const [newMedia, setNewMedia] = useState([]);
 
   useEffect(() => {
-    if (!isAuthenticated) {
+    console.log('Received id:', id); // 이 줄을 추가하여 id 값을 확인합니다.
+    const token = localStorage.getItem('accessToken');
+    if (!token) {
       navigate('/login', { state: { from: `/edit-post/${id}` } });
     } else {
+      setAccessToken(token);
       fetchPost();
     }
-  }, [isAuthenticated, navigate, id]);
+  }, [navigate, id]);
 
   const fetchPost = async () => {
     try {
       setIsLoading(true);
-      // 실제 API 호출로 대체
-      // const response = await axios.get(`/api/posts/${id}`);
-      // const post = response.data;
-      const samplePost = {
-        postId: id,
-        userId: 123,
-        user: '헬스초보',
-        category: '복근',
-        title: '복근 운동 피드백 부탁드려요',
-        content: '복근 운동을 시작한 지 얼마 안 됐는데, 제 자세가 맞는지 봐주세요. 어떤 점을 개선해야 할까요?',
-        date: '2024-07-24',
-        images: [
-          'https://cdn.eyesmag.com/content/uploads/sliderImages/2024/07/05/KakaoTalk_20240705_152931486_07-5f31a62b-2969-433a-97a3-d1c59f6f8a93.jpg',
-          'https://cdn.eyesmag.com/content/uploads/sliderImages/2024/07/05/KakaoTalk_20240705_152931486_07-5f31a62b-2969-433a-97a3-d1c59f6f8a93.jpg',
-          'https://cdn.eyesmag.com/content/uploads/sliderImages/2024/07/05/KakaoTalk_20240705_152931486_07-5f31a62b-2969-433a-97a3-d1c59f6f8a93.jpg',
-        ],
-        likes: 15,
-      };
-      setTitle(samplePost.title);
-      setContent(samplePost.content);
-      setCategory(samplePost.category);
-      setPreviews(samplePost.images);
+      const url = `${import.meta.env.VITE_API_BASE_URL}/api/post/${id}`;
+      const response = await axios.get(url, {
+        headers: {
+          Authorization: `${localStorage.getItem('accessToken')}`,
+        },
+      });
+      const post = response.data;
+      setTitle(post.title);
+      setContent(post.content);
+      setCategory(post.category);
+      setExistingMedia(post.attachments.map((attachment) => attachment.filePath));
+      setPreviews(post.attachments.map((attachment) => attachment.filePath));
       setIsLoading(false);
     } catch (error) {
       console.error('게시글 불러오기 중 오류 발생:', error);
       setError('게시글을 불러오는 중 오류가 발생했습니다.');
       setIsLoading(false);
+    }
+  };
+
+  const removeMedia = (index) => {
+    if (index < existingMedia.length) {
+      setExistingMedia((prev) => prev.filter((_, i) => i !== index));
+      setPreviews((prev) => prev.filter((_, i) => i !== index));
+    } else {
+      const newIndex = index - existingMedia.length;
+      setNewMedia((prev) => prev.filter((_, i) => i !== newIndex));
+      setPreviews((prev) => prev.filter((_, i) => i !== index));
     }
   };
 
@@ -70,21 +73,43 @@ const EditPostPage = () => {
 
     try {
       const formData = new FormData();
-      formData.append('title', title);
-      formData.append('content', content);
-      formData.append('category', category);
-      media.forEach((file, index) => {
-        formData.append(`media${index}`, file);
+      const postObject = {
+        id: parseInt(id),
+        title,
+        content,
+        category,
+        userId: 0,
+        username: '',
+        createdDate: new Date().toISOString(),
+        attachments: [],
+        likesNum: 0,
+        liked: false,
+      };
+
+      const postBlob = new Blob([JSON.stringify(postObject)], { type: 'application/json' });
+      formData.append('post', postBlob, 'post.json');
+
+      // 기존 미디어 파일 처리
+      existingMedia.forEach((filePath) => {
+        formData.append('existingFiles', filePath);
       });
 
-      await axios.put(`/api/posts/${id}`, formData, {
+      // 새로 추가된 미디어 파일 처리
+      newMedia.forEach((file) => {
+        formData.append('files', file);
+      });
+
+      console.log('FormData 내용:', formData);
+
+      const response = await axios.put(`${import.meta.env.VITE_API_BASE_URL}/api/post/${id}`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
+          Authorization: accessToken,
         },
       });
 
-      console.log('게시글이 성공적으로 수정되었습니다.');
-      navigate('/mypage');
+      console.log('게시글이 성공적으로 수정되었습니다:', response.data);
+      navigate('/my-page');
     } catch (error) {
       console.error('게시글 수정 중 오류 발생:', error);
       setError('게시글 수정 중 오류가 발생했습니다. 다시 시도해 주세요.');
@@ -93,7 +118,7 @@ const EditPostPage = () => {
 
   const handleFileChange = (e) => {
     const files = Array.from(e.target.files);
-    setMedia((prevMedia) => [...prevMedia, ...files]);
+    setNewMedia((prevMedia) => [...prevMedia, ...files]);
 
     files.forEach((file) => {
       const reader = new FileReader();
@@ -104,12 +129,7 @@ const EditPostPage = () => {
     });
   };
 
-  const removeMedia = (index) => {
-    setMedia((prevMedia) => prevMedia.filter((_, i) => i !== index));
-    setPreviews((prevPreviews) => prevPreviews.filter((_, i) => i !== index));
-  };
-
-  if (!isAuthenticated) {
+  if (!accessToken) {
     return null;
   }
 
@@ -119,7 +139,7 @@ const EditPostPage = () => {
 
   return (
     <div className="max-w-[600px] min-h-[100vh] mx-auto p-4 bg-white">
-      <Header isAuthenticated={isAuthenticated} />
+      <Header />
       <div className="flex items-center justify-between mt-8 mb-4">
         <h1 className="text-xl font-GmarketBold">게시글 수정</h1>
         <button
@@ -164,7 +184,7 @@ const EditPostPage = () => {
           className="w-full p-2 mb-4 border rounded font-GmarketMedium"
           required
         >
-          <option value="">카테고리 선택</option>
+          <option value="">카테리 선택</option>
           <option value="복근">복근</option>
           <option value="팔">팔</option>
           <option value="등">등</option>

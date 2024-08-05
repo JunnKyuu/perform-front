@@ -1,16 +1,18 @@
 import React, { useState, useRef, useEffect } from 'react';
+import axios from 'axios';
 import defaultImage from '../assets/images/default.png';
 
-const EditProfileModal = ({ userInfo, onSave, onClose }) => {
-  const [name, setName] = useState(userInfo.name);
-  const [sns, setSns] = useState(userInfo.sns);
+const EditProfileModal = ({ userInfo, onSave, onClose, userId, accessToken }) => {
+  const [username, setUsername] = useState(userInfo.username);
+  const [snsUrl, setSnsUrl] = useState(userInfo.snsUrl);
   const [profileImage, setProfileImage] = useState(null);
-  const [previewImage, setPreviewImage] = useState(userInfo.profileImage);
+  const [previewImage, setPreviewImage] = useState(userInfo.profile);
+  const [ad, setAd] = useState(userInfo.ad); // New state added
   const fileInputRef = useRef(null);
 
   useEffect(() => {
-    setPreviewImage(userInfo.profileImage);
-  }, [userInfo.profileImage]);
+    setPreviewImage(userInfo.profile);
+  }, [userInfo.profile]);
 
   const handleImageChange = (e) => {
     if (e.target.files[0]) {
@@ -20,15 +22,37 @@ const EditProfileModal = ({ userInfo, onSave, onClose }) => {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const formData = new FormData();
-    formData.append('name', name);
-    formData.append('sns', sns);
+
+    const userObject = {
+      id: userId,
+      username: username,
+      email: userInfo.email,
+      snsUrl: snsUrl,
+      ad: ad,
+      expert: userInfo.expert,
+    };
+
+    const userBlob = new Blob([JSON.stringify(userObject)], { type: 'application/json' });
+    formData.append('user', userBlob, 'user.json');
+
     if (profileImage) {
-      formData.append('profileImage', profileImage);
+      formData.append('profile', profileImage);
     }
-    onSave(formData);
+
+    try {
+      const response = await axios.put(`${import.meta.env.VITE_API_BASE_URL}/api/users/${userId}`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          Authorization: accessToken,
+        },
+      });
+      onSave(response.data);
+    } catch (error) {
+      console.error('프로필 업데이트 중 오류 발생:', error);
+    }
   };
 
   return (
@@ -52,14 +76,14 @@ const EditProfileModal = ({ userInfo, onSave, onClose }) => {
         </div>
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
-            <label htmlFor="name" className="block mb-2 font-GmarketMedium">
+            <label htmlFor="username" className="block mb-2 font-GmarketMedium">
               이름
             </label>
             <input
               type="text"
-              id="name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
+              id="username"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
               className="w-full p-2 text-sm border rounded font-GmarketLight"
               required
             />
@@ -77,16 +101,34 @@ const EditProfileModal = ({ userInfo, onSave, onClose }) => {
             />
           </div>
           <div className="mb-4">
-            <label htmlFor="sns" className="block mb-2 font-GmarketMedium">
+            <label htmlFor="snsUrl" className="block mb-2 font-GmarketMedium">
               SNS
             </label>
             <input
               type="text"
-              id="sns"
-              value={sns}
-              onChange={(e) => setSns(e.target.value)}
+              id="snsUrl"
+              value={snsUrl}
+              onChange={(e) => setSnsUrl(e.target.value)}
               className="w-full p-2 text-sm border rounded font-GmarketLight"
             />
+          </div>
+          {/* New toggle switch added */}
+          <div className="flex items-center mb-4">
+            <label htmlFor="adToggle" className="mr-2 font-GmarketMedium">
+              고수 홍보
+            </label>
+            <div
+              className={`w-12 h-6 flex items-center rounded-full p-1 cursor-pointer ${
+                ad ? 'bg-[#2EC4B6]' : 'bg-gray-300'
+              }`}
+              onClick={() => setAd(!ad)}
+            >
+              <div
+                className={`bg-white w-4 h-4 rounded-full shadow-md transform transition-transform duration-300 ease-in-out ${
+                  ad ? 'translate-x-6' : ''
+                }`}
+              ></div>
+            </div>
           </div>
           <div className="flex justify-end">
             <button

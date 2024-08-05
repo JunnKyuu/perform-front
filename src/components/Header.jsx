@@ -1,30 +1,37 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import CategorySideBar from './CategorySideBar';
+import { useAuth } from '../context/AuthContext';
 
-const Header = ({ isAuthenticated }) => {
+const Header = () => {
+  const { accessToken, logout } = useAuth();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
   };
 
+  const handleLogout = () => {
+    logout();
+    window.location.href = '/';
+  };
+
   return (
     <div className="relative max-w-[600px] mx-auto">
       <div className="w-full h-[30px] flex items-center py-6 px-5">
-        {isAuthenticated ? (
-          <div className="flex items-center justify-between w-full">
-            <button className="cursor-pointer hover:text-[#2EC4B6] active:text-black" onClick={toggleSidebar}>
-              <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" className="w-6 h-6 fill-current">
-                <path
-                  clipRule="evenodd"
-                  d="M3 7C3 7.41421 3.33579 7.75 3.75 7.75H20.25C20.6642 7.75 21 7.41421 21 7C21 6.58579 20.6642 6.25 20.25 6.25H3.75C3.33579 6.25 3 6.58579 3 7ZM3 12C3 12.4142 3.33579 12.75 3.75 12.75H20.25C20.6642 12.75 21 12.4142 21 12C21 11.5858 20.6642 11.25 20.25 11.25H3.75C3.33579 11.25 3 11.5858 3 12ZM3 17C3 17.4142 3.33579 17.75 3.75 17.75H20.25C20.6642 17.75 21 17.4142 21 17C21 16.5858 20.6642 16.25 20.25 16.25H3.75C3.33579 16.25 3 16.5858 3 17Z"
-                />
-              </svg>
-            </button>
-            <div className="flex items-center justify-end w-[55px]">
+        <div className="flex items-center justify-between w-full">
+          <button className="cursor-pointer hover:text-[#2EC4B6] active:text-black" onClick={toggleSidebar}>
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" className="w-6 h-6 fill-current">
+              <path
+                clipRule="evenodd"
+                d="M3 7C3 7.41421 3.33579 7.75 3.75 7.75H20.25C20.6642 7.75 21 7.41421 21 7C21 6.58579 20.6642 6.25 20.25 6.25H3.75C3.33579 6.25 3 6.58579 3 7ZM3 12C3 12.4142 3.33579 12.75 3.75 12.75H20.25C20.6642 12.75 21 12.4142 21 12C21 11.5858 20.6642 11.25 20.25 11.25H3.75C3.33579 11.25 3 11.5858 3 12ZM3 17C3 17.4142 3.33579 17.75 3.75 17.75H20.25C20.6642 17.75 21 17.4142 21 17C21 16.5858 20.6642 16.25 20.25 16.25H3.75C3.33579 16.25 3 16.5858 3 17Z"
+              />
+            </svg>
+          </button>
+          {accessToken ? (
+            <div className="flex items-center justify-end w-[110px]">
               <Link to="/my-page">
-                <button className="w-[25px] h-[25px] flex items-center justify-center hover:text-[#2EC4B6] active:text-black">
+                <button className="w-[25px] h-[25px] flex items-center justify-center hover:text-[#2EC4B6] active:text-black mr-2">
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
                     fill="#000000"
@@ -37,30 +44,21 @@ const Header = ({ isAuthenticated }) => {
                   </svg>
                 </button>
               </Link>
-            </div>
-          </div>
-        ) : (
-          <div className="flex items-center justify-between w-full">
-            <button className="cursor-pointer hover:text-[#2EC4B6] active:text-black" onClick={toggleSidebar}>
-              <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" className="w-6 h-6 fill-current">
-                <path
-                  clipRule="evenodd"
-                  d="M3 7C3 7.41421 3.33579 7.75 3.75 7.75H20.25C20.6642 7.75 21 7.41421 21 7C21 6.58579 20.6642 6.25 20.25 6.25H3.75C3.33579 6.25 3 6.58579 3 7ZM3 12C3 12.4142 3.33579 12.75 3.75 12.75H20.25C20.6642 12.75 21 12.4142 21 12C21 11.5858 20.6642 11.25 20.25 11.25H3.75C3.33579 11.25 3 11.5858 3 12ZM3 17C3 17.4142 3.33579 17.75 3.75 17.75H20.25C20.6642 17.75 21 17.4142 21 17C21 16.5858 20.6642 16.25 20.25 16.25H3.75C3.33579 16.25 3 16.5858 3 17Z"
-                />
-              </svg>
-            </button>
-            <Link to={'/login'}>
               <button
+                onClick={handleLogout}
                 className="w-[50px] h-[25px] rounded-[5px] flex items-center justify-center border-solid border-[1.5px] border-black text-[11px] font-GmarketMedium hover:border-[#2EC4B6] hover:text-[#2EC4B6] active:border-black active:text-black"
-                onClick={() => {
-                  console.log('로그인 페이지로 이동');
-                }}
               >
+                로그아웃
+              </button>
+            </div>
+          ) : (
+            <Link to={'/login'}>
+              <button className="w-[50px] h-[25px] rounded-[5px] flex items-center justify-center border-solid border-[1.5px] border-black text-[11px] font-GmarketMedium hover:border-[#2EC4B6] hover:text-[#2EC4B6] active:border-black active:text-black">
                 로그인
               </button>
             </Link>
-          </div>
-        )}
+          )}
+        </div>
       </div>
       <CategorySideBar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
     </div>
