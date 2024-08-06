@@ -13,7 +13,16 @@ const FeedbackCommunity = () => {
   const [sortBy, setSortBy] = useState('최신순');
   const navigate = useNavigate();
 
-  const categories = ['전체', '복근', '팔', '등', '가슴', '하체', '어깨'];
+  const categories = ['전체', '등', '팔', '가슴', '하체', '어깨', '복근'];
+
+  const categoryMapping = {
+    back: '등',
+    chest: '가슴',
+    shoulder: '어깨',
+    arm: '팔',
+    abs: '복근',
+    lower: '하체',
+  };
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -86,7 +95,7 @@ const FeedbackCommunity = () => {
 
   const handleWritePost = () => {
     if (!accessToken) {
-      alert('로그인�� 필요한 서비스입니다.');
+      alert('로그인이 필요한 서비스입니다.');
       navigate('/login');
     } else {
       navigate('/write-post');
@@ -138,8 +147,10 @@ const FeedbackCommunity = () => {
               <div className="px-3 py-2 border rounded-lg shadow-sm border-[#DDDDDD] transition-all duration-200 ease-in-out hover:shadow-md hover:border-[#2EC4B6] active:bg-gray-100">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center justify-start flex-grow">
-                    <span className="text-sm font-GmarketMedium text-[#2EC4B6] w-8">{post.category}</span>
-                    <h3 className="flex ml-1 text-sm font-GmarketLight">{post.title}</h3>
+                    <span className="text-sm font-GmarketMedium text-[#2EC4B6] w-8">
+                      {categoryMapping[post.category] || post.category}
+                    </span>
+                    <h3 className="flex ml-3 text-sm font-GmarketLight">{post.title}</h3>
                   </div>
                   <div className="flex items-center justify-center">
                     <p className="mx-2 text-[10px] text-black font-GmarketLight">{post.user}</p>
