@@ -164,7 +164,7 @@ const Home = () => {
       {categories.map((category) => (
         <button
           key={category.name}
-          className="cursor-pointer w-[5%] min-w-[40px] aspect-square flex flex-col justify-center items-center m-1 transition-all duration-200 ease-in-out hover:bg-gray-50 active:bg-gray-100 rounded-lg group"
+          className=" cursor-pointer w-[5%] min-w-[29px] aspect-square flex flex-col justify-center items-center m-1 transition-all duration-200 ease-in-out hover:bg-gray-50 active:bg-gray-100 rounded-lg group"
           onClick={() => handleCategoryClick(category.path)}
         >
           <svg
