@@ -198,7 +198,7 @@ const Home = () => {
   };
 
   const renderMasterBanner = () => (
-    <div className="flex items-center justify-center px-5 py-3 mt-5">
+    <div className="px-5 py-3 mt-5">
       <h2 className="text-xl font-GmarketBold mb-4 text-[#2EC4B6]">고수 추천</h2>
       <div className="relative">
         {experts.length > 0 ? (
