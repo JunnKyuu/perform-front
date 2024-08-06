@@ -319,7 +319,7 @@ const Home = () => {
       {searchTerm.trim() === '' ? (
         <>
           {renderMasterBanner()}
-          <div className="flex justify-center items-center w-[100%] p-3 mt-10">
+          <div className="flex justify-center items-center w-[100%] p-3 mt-5">
             <AdvertiseButton />
           </div>
           {renderPostSection('피드백 커뮤니티', feedbackPosts, '/feedback', 'feedback')}
