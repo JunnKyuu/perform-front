@@ -27,8 +27,11 @@ const FeedbackCommunity = () => {
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const category = params.get('category');
-    if (category && categories.includes(category)) {
-      setSelectedCategory(category);
+    if (category) {
+      const koreanCategory = categoryMapping[category] || category;
+      if (categories.includes(koreanCategory)) {
+        setSelectedCategory(koreanCategory);
+      }
     }
   }, [location]);
 
@@ -117,15 +120,15 @@ const FeedbackCommunity = () => {
         </div>
         <div className="flex flex-wrap gap-2 mb-4 font-GmarketMedium">
           {categories.map((category) => (
-            <button
+            <Link
               key={category}
-              onClick={() => setSelectedCategory(category)}
+              to={category === '전체' ? '/feedback' : `/feedback?category=${category}`}
               className={`px-3 py-1 text-sm rounded-full ${
                 selectedCategory === category ? 'bg-[#2EC4B6] text-white' : 'bg-gray-200 text-gray-700'
               }`}
             >
               {category}
-            </button>
+            </Link>
           ))}
         </div>
         <div className="flex gap-2 mb-10 font-GmarketMedium">
