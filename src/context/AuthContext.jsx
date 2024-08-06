@@ -2,10 +2,8 @@ import { createContext, useState, useContext } from 'react';
 
 const AuthContext = createContext();
 
-const DEFAULT_TOKEN = 'XyteLRheEQsaR4bcbvsT4Kekc5KcROPwAAAAAQorDR8AAAGRKC5BNuQ1KlcE_6bt';
-
 export const AuthProvider = ({ children }) => {
-  const [accessToken, setAccessToken] = useState(localStorage.getItem('accessToken') || DEFAULT_TOKEN);
+  const [accessToken, setAccessToken] = useState(localStorage.getItem('accessToken'));
 
   const login = (token) => {
     setAccessToken(token);
@@ -13,7 +11,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = () => {
-    setAccessToken(DEFAULT_TOKEN);
+    setAccessToken(null);
     localStorage.removeItem('accessToken');
   };
 

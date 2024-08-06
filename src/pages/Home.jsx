@@ -152,7 +152,7 @@ const Home = () => {
       <input
         className="w-[100%] border-solid border-2 border-[#dddddd] rounded-[20px] px-5 py-[3px] text-[15px] font-GmarketLight focus:outline-none focus:border-[#2EC4B6]"
         type="text"
-        placeholder="원하는 제목을 입력해주세요."
+        placeholder="제목을 입력해주세요."
         value={searchTerm}
         onChange={handleSearch}
       />
@@ -319,7 +319,7 @@ const Home = () => {
       {searchTerm.trim() === '' ? (
         <>
           {renderMasterBanner()}
-          <div className="flex justify-center items-center w-[100%] p-3 mt-5">
+          <div className="flex justify-center items-center w-[100%] p-3 mt-10">
             <AdvertiseButton />
           </div>
           {renderPostSection('피드백 커뮤니티', feedbackPosts, '/feedback', 'feedback')}
