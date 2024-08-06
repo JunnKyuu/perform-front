@@ -37,10 +37,10 @@ const FeedbackCommunity = () => {
       try {
         const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/post`);
         const formattedPosts = response.data
-          .filter((post) => post.category !== '루틴' && post.category !== '영양') // 루틴과 영양 카테고리 제외
+          .filter((post) => post.category !== '루틴' && post.category !== '영양')
           .map((post) => ({
             postId: post.id,
-            category: post.category,
+            category: categoryMapping[post.category] || post.category,
             title: post.title,
             user: post.username,
             userId: post.userId,
