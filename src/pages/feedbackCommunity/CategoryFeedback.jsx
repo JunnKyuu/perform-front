@@ -13,14 +13,17 @@ const CategoryFeedback = () => {
   const navigate = useNavigate();
 
   const categoryMapping = {
-    abs: '복근',
-    arm: '팔',
     back: '등',
     chest: '가슴',
-    evaluation: '심사',
-    lower: '하체',
     shoulder: '어깨',
+    arm: '팔',
+    abs: '복근',
+    lower: '하체',
   };
+
+  const reverseCategoryMapping = Object.fromEntries(
+    Object.entries(categoryMapping).map(([key, value]) => [value, key])
+  );
 
   useEffect(() => {
     fetchAllPosts();
@@ -29,18 +32,20 @@ const CategoryFeedback = () => {
   const fetchAllPosts = async () => {
     try {
       const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/api/post`);
-      const formattedPosts = response.data.map((post) => ({
-        postId: post.id,
-        category: post.category,
-        title: post.title,
-        user: post.username,
-        userId: post.userId,
-        content: post.content,
-        date: new Date(post.createdDate).toLocaleDateString(),
-        likes: post.likesNum,
-        attachments: post.attachments,
-        liked: post.liked,
-      }));
+      const formattedPosts = response.data
+        .filter((post) => post.category !== '루틴' && post.category !== '영양')
+        .map((post) => ({
+          postId: post.id,
+          category: categoryMapping[post.category] || post.category,
+          title: post.title,
+          user: post.username,
+          userId: post.userId,
+          content: post.content,
+          date: new Date(post.createdDate).toLocaleDateString(),
+          likes: post.likesNum,
+          attachments: post.attachments,
+          liked: post.liked,
+        }));
       setAllPosts(formattedPosts);
     } catch (error) {
       console.error('게시물을 가져오는 중 오류 발생:', error);
@@ -65,11 +70,6 @@ const CategoryFeedback = () => {
       alert('로그인이 필요한 서비스입니다.');
       navigate('/login');
     } else {
-      // if (category === 'evaluation') {
-      //   navigate('/write-evaluation');
-      // } else {
-      //   navigate('/write-post');
-      // }
       navigate('/write-post');
     }
   };
@@ -79,11 +79,6 @@ const CategoryFeedback = () => {
       alert('로그인이 필요한 서비스입니다.');
       navigate('/login');
     } else {
-      // if (category === 'evaluation') {
-      //   navigate(`/feedback/evaluation/${post.postId}`, { state: { postData: post } });
-      // } else {
-      //   navigate(`/feedback/${post.postId}`, { state: { postData: post } });
-      // }
       navigate(`/feedback/${post.postId}`, { state: { postData: post } });
     }
   };
