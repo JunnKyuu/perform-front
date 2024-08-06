@@ -20,7 +20,7 @@ const Callback = () => {
           url: `${API_BASE_URL}/auth/kakao/callback`,
           params: {
             code: code,
-            redirect_uri: 'https://perfect-form-chi.vercel.app/',
+            redirect_uri: 'http://localhost:5172/',
           },
           headers: {
             'Content-Type': 'application/json;charset=utf-8',
