@@ -18,7 +18,7 @@ const CategoryFeedback = () => {
     back: '등',
     chest: '가슴',
     evaluation: '심사',
-    leg: '하체',
+    lower: '하체',
     shoulder: '어깨',
   };
 
