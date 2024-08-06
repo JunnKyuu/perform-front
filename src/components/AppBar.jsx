@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 
 const AppBar = () => {
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-10 flex justify-center">
+    <div className="fixed bottom-0 left-0 right-0 z-10 flex justify-center w-full">
       <div className="max-w-[600px] w-full mx-auto bg-white shadow-md border-t-2 border-[#2EC4B6]">
         <div className="flex items-center justify-center px-4 py-2">
           <Link
