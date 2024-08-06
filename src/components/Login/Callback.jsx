@@ -13,9 +13,6 @@ const Callback = () => {
   const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 
   useEffect(() => {
-    console.log('로그인 시도');
-    console.log(`인가코드: ${code}`);
-    console.log(`url: ${API_BASE_URL}/auth/kakao/callback`);
     const kakaoLogin = async () => {
       try {
         const response = await axios({
@@ -29,8 +26,6 @@ const Callback = () => {
             'Content-Type': 'application/json;charset=utf-8',
           },
         });
-
-        console.log(response.data);
 
         if (response.data.accessToken) {
           login(response.data.accessToken);
