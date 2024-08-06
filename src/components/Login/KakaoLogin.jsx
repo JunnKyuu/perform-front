@@ -5,6 +5,7 @@ const KakaoLogin = () => {
 
   const clickToKakao = () => {
     window.location.replace(`${KAKAO_AUTH_URL}`);
+    console.log(`카카오 url: ${KAKAO_AUTH_URL}`);
   };
 
   return (
