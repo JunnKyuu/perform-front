@@ -196,12 +196,13 @@ const Home = () => {
     swipeToSlide: true,
     variableWidth: true,
     adaptiveHeight: true,
+    className: 'overflow-hidden',
   };
 
   const renderMasterBanner = () => (
     <div className="px-5 py-3 mt-5">
       <h2 className="text-xl font-GmarketBold mb-4 text-[#2EC4B6]">고수 추천</h2>
-      <div className="relative">
+      <div className="relative overflow-hidden">
         {experts.length > 0 ? (
           experts.length === 1 ? (
             // 고수가 1명일 때
@@ -220,7 +221,7 @@ const Home = () => {
             </div>
           ) : (
             // 고수가 2명 이상일 때
-            <div className="flex items-center h-[220px]">
+            <div className="h-[220px]">
               <Slider {...sliderSettings}>
                 {experts.map((expert) => (
                   <div key={expert.id} className="px-2" style={{ width: 200 }}>
