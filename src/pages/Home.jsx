@@ -195,6 +195,7 @@ const Home = () => {
     arrows: false,
     swipeToSlide: true,
     variableWidth: true,
+    adaptiveHeight: true,
   };
 
   const renderMasterBanner = () => (
@@ -219,21 +220,23 @@ const Home = () => {
             </div>
           ) : (
             // 고수가 2명 이상일 때
-            <Slider {...sliderSettings}>
-              {experts.map((expert) => (
-                <div key={expert.id} className="px-2" style={{ width: 200 }}>
-                  <div className="flex flex-col items-center p-4 bg-gray-100 rounded-lg">
-                    <img
-                      src={expert.profile || defaultImage}
-                      alt={expert.username}
-                      className="w-16 h-16 mb-2 rounded-full sm:w-20 sm:h-20 md:w-24 md:h-24"
-                    />
-                    <h3 className="text-xs sm:text-sm font-GmarketMedium">{expert.username}</h3>
-                    <p className="text-xs text-gray-600 sm:text-sm">@{expert.snsUrl}</p>
+            <div className="flex items-center h-[220px]">
+              <Slider {...sliderSettings}>
+                {experts.map((expert) => (
+                  <div key={expert.id} className="px-2" style={{ width: 200 }}>
+                    <div className="flex flex-col items-center p-4 bg-gray-100 rounded-lg">
+                      <img
+                        src={expert.profile || defaultImage}
+                        alt={expert.username}
+                        className="w-16 h-16 mb-2 rounded-full sm:w-20 sm:h-20 md:w-24 md:h-24"
+                      />
+                      <h3 className="text-xs sm:text-sm font-GmarketMedium">{expert.username}</h3>
+                      <p className="text-xs text-gray-600 sm:text-sm">@{expert.snsUrl}</p>
+                    </div>
                   </div>
-                </div>
-              ))}
-            </Slider>
+                ))}
+              </Slider>
+            </div>
           )
         ) : (
           <p className="text-center text-[#FF6B6B] font-GmarketMedium text-sm">
