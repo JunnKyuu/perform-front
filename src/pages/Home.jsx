@@ -220,7 +220,7 @@ const Home = () => {
             </div>
           ) : (
             // 고수가 2명 이상일 때
-            <div className="flex items-center h-[220px]">
+            <div className="h-[220px]">
               <Slider {...sliderSettings}>
                 {experts.map((expert) => (
                   <div key={expert.id} className="px-2" style={{ width: 200 }}>
