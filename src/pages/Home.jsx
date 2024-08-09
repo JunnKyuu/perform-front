@@ -250,8 +250,8 @@ const Home = () => {
       return categoryMap[englishCategory] || englishCategory;
     };
 
-    // 게시물을 createdDate 기준으로 최신순 정렬
-    const sortedPosts = [...posts].sort((a, b) => new Date(b.createdDate) - new Date(a.createdDate));
+    // postId가 높은 순으로 정렬
+    const sortedPosts = [...posts].sort((a, b) => b.postId - a.postId);
 
     return (
       <div className="px-5 py-3 mt-10">
