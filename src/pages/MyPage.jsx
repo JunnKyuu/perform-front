@@ -69,7 +69,7 @@ const MyPage = () => {
     fetchMyPosts();
   }, [refreshTrigger]);
 
-  const getCategoryInEnglish = (category) => {
+  const getCategoryKorean = (category) => {
     const categoryMap = {
       루틴: 'routine',
       심사: 'evaluation',
@@ -78,7 +78,7 @@ const MyPage = () => {
       가슴: 'chest',
       어깨: 'shoulder',
       팔: 'arm',
-      하체: 'leg',
+      하체: 'lower',
       복근: 'abs',
     };
     return categoryMap[category] || category;
@@ -230,7 +230,7 @@ const MyPage = () => {
                         className="flex-grow block p-2 rounded cursor-pointer hover:bg-gray-100"
                       >
                         <div className="flex justify-between text-xs text-gray-600 font-GmarketLight mb-[5px]">
-                          <span className="text-[#2EC4B6] font-GmarketMedium">{post.category}</span>
+                          <span className="text-[#2EC4B6] font-GmarketMedium">{getCategoryKorean(post.category)}</span>
                           <span>{new Date(post.createdDate).toLocaleDateString()}</span>
                         </div>
                         <h3 className="text-sm font-GmarketLight">{post.title}</h3>
