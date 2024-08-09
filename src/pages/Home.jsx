@@ -84,19 +84,6 @@ const Home = () => {
     }
   };
 
-  const getCategoryPath = (category) => {
-    const categoryMap = {
-      복근: 'abs',
-      팔: 'arm',
-      등: 'back',
-      가슴: 'chest',
-      심사: 'evaluation',
-      하체: 'leg',
-      어깨: 'shoulder',
-    };
-    return categoryMap[category] || category.toLowerCase();
-  };
-
   const handleCategoryClick = (path) => {
     if (path === '/routine' || path === '/nutrition') {
       navigate(`/routine-nutrition${path}`);
@@ -249,6 +236,23 @@ const Home = () => {
   );
 
   const renderPostSection = (title, posts, linkTo, category) => {
+    const getCategoryKorean = (englishCategory) => {
+      const categoryMap = {
+        lower: '하체',
+        abs: '복근',
+        arm: '팔',
+        back: '등',
+        chest: '가슴',
+        shoulder: '어깨',
+        routine: '루틴',
+        nutrition: '영양',
+      };
+      return categoryMap[englishCategory] || englishCategory;
+    };
+
+    // 게시물을 createdDate 기준으로 최신순 정렬
+    const sortedPosts = [...posts].sort((a, b) => new Date(b.createdDate) - new Date(a.createdDate));
+
     return (
       <div className="px-5 py-3 mt-10">
         <div className="flex items-center justify-between mb-4">
@@ -260,9 +264,9 @@ const Home = () => {
             전체보기
           </Link>
         </div>
-        {posts.length > 0 ? (
+        {sortedPosts.length > 0 ? (
           <div className="grid grid-cols-2 gap-4">
-            {posts.slice(0, 4).map((post) => (
+            {sortedPosts.slice(0, 4).map((post) => (
               <div
                 key={post.postId}
                 className="overflow-hidden border rounded-lg shadow-sm cursor-pointer transition-all duration-200 ease-in-out hover:shadow-md hover:border-[#2EC4B6] active:bg-gray-100"
@@ -276,7 +280,9 @@ const Home = () => {
                   />
                   <div className="flex flex-col justify-between w-full">
                     <div>
-                      <span className="text-xs sm:text-xs font-GmarketMedium text-[#2EC4B6]">{post.category}</span>
+                      <span className="text-xs sm:text-xs font-GmarketMedium text-[#2EC4B6]">
+                        {getCategoryKorean(post.category)}
+                      </span>
                       <h3 className="text-xs truncate sm:text-sm font-GmarketMedium">{post.title}</h3>
                     </div>
                     <div className="flex items-center justify-between">
