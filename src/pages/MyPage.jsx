@@ -71,15 +71,14 @@ const MyPage = () => {
 
   const getCategoryKorean = (category) => {
     const categoryMap = {
-      루틴: 'routine',
-      심사: 'evaluation',
-      영양: 'nutrition',
-      등: 'back',
-      가슴: 'chest',
-      어깨: 'shoulder',
-      팔: 'arm',
-      하체: 'lower',
-      복근: 'abs',
+      lower: '하체',
+      abs: '복근',
+      arm: '팔',
+      back: '등',
+      chest: '가슴',
+      shoulder: '어깨',
+      routine: '루틴',
+      nutrition: '영양',
     };
     return categoryMap[category] || category;
   };
