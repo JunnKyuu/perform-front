@@ -8,7 +8,7 @@ import AppBar from '../../components/AppBar';
 const EvaluationCommunity = () => {
   const { accessToken } = useAuth();
   const [posts, setPosts] = useState([]);
-  const [sortBy, setSortBy] = useState('최신순');
+  const [sortBy, setSortBy] = useState('최신순'); // 기본값을 '최신순'으로 설정
   const navigate = useNavigate();
 
   const getEvaluationStatus = (reviewStatus) => {
@@ -47,11 +47,12 @@ const EvaluationCommunity = () => {
           title: post.title,
           user: post.user?.username || '익명',
           content: post.content,
-          date: new Date(post.createdDate).toLocaleDateString(),
+          date: new Date(post.createdDate), // Date 객체로 저장
           attachments: post.attachments,
           evaluationStatus: getEvaluationStatus(post.reviewStatus),
         }));
-        setPosts(formattedPosts);
+        // 최신순으로 정렬하여 저장
+        setPosts(formattedPosts.sort((a, b) => b.date - a.date));
       } catch (error) {
         console.error('심사 게시물을 가져오는 중 오류 발생:', error);
       }
@@ -62,7 +63,7 @@ const EvaluationCommunity = () => {
 
   const sortPosts = (posts) => {
     if (sortBy === '최신순') {
-      return [...posts].sort((a, b) => new Date(b.date) - new Date(a.date));
+      return [...posts].sort((a, b) => b.date - a.date);
     } else if (sortBy === '인기순') {
       return [...posts].sort((a, b) => b.likes - a.likes);
     }
@@ -117,7 +118,7 @@ const EvaluationCommunity = () => {
                   </div>
                   <div className="flex items-center justify-center">
                     <p className="mx-2 text-[10px] text-black font-GmarketLight">{post.user}</p>
-                    <p className="w-16 text-[10px] text-black font-GmarketLight">{post.date}</p>
+                    <p className="w-16 text-[10px] text-black font-GmarketLight">{post.date.toLocaleDateString()}</p>
                   </div>
                 </div>
               </div>
