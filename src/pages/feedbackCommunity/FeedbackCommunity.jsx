@@ -10,7 +10,8 @@ const FeedbackCommunity = () => {
   const [posts, setPosts] = useState([]);
   const location = useLocation();
   const [selectedCategory, setSelectedCategory] = useState('전체');
-  const [sortBy, setSortBy] = useState('최신순'); // 기본값을 '최신순'으로 설정
+  const [sortBy, setSortBy] = useState('최신순');
+  const navigate = useNavigate();
 
   const categories = ['전체', '등', '팔', '가슴', '하체', '어깨', '복근'];
 
@@ -47,12 +48,12 @@ const FeedbackCommunity = () => {
             user: post.username,
             userId: post.userId,
             content: post.content,
-            date: new Date(post.createdDate), // Date 객체로 저장
+            date: new Date(post.createdDate).toLocaleDateString(),
             likes: post.likesNum,
             attachments: post.attachments,
             liked: post.liked,
           }));
-        setPosts(formattedPosts.sort((a, b) => b.date - a.date)); // 최신순으로 정렬
+        setPosts(formattedPosts);
       } catch (error) {
         console.error('게시물을 가져오는 중 오류 발생:', error);
       }
@@ -63,7 +64,7 @@ const FeedbackCommunity = () => {
 
   const sortPosts = (posts) => {
     if (sortBy === '최신순') {
-      return [...posts].sort((a, b) => b.date - a.date);
+      return [...posts].sort((a, b) => new Date(b.date) - new Date(a.date));
     } else if (sortBy === '인기순') {
       return [...posts].sort((a, b) => b.likes - a.likes);
     }
@@ -156,7 +157,7 @@ const FeedbackCommunity = () => {
                   </div>
                   <div className="flex items-center justify-center">
                     <p className="mx-2 text-[10px] text-black font-GmarketLight">{post.user}</p>
-                    <p className="w-16 text-[10px] text-black font-GmarketLight">{post.date.toLocaleDateString()}</p>
+                    <p className="w-16 text-[10px] text-black font-GmarketLight">{post.date}</p>
                     <p className="ml-2 text-[10px] text-red-500 font-GmarketLight">❤ {post.likes}</p>
                   </div>
                 </div>
